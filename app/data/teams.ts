@@ -82,7 +82,8 @@ export function getTeamById(id: string): Team | undefined {
 
 export interface SeedSource {
   source: 'winner' | 'runner' | 'third'
-  group: GroupKey
+  group?: GroupKey        // for winner/runner: the specific group
+  groups?: GroupKey[]     // for third: the candidate groups
 }
 
 export interface R32Fixture {
@@ -96,41 +97,60 @@ export interface R32Fixture {
 // Pairings follow the official FIFA draw bracket — verify at:
 // https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/bracket
 export const R32_FIXTURES: R32Fixture[] = [
-  { id: 'r32_m1',  home: { source: 'winner', group: 'A' }, away: { source: 'runner', group: 'B' }, bracket: 'left' },
-  { id: 'r32_m2',  home: { source: 'winner', group: 'C' }, away: { source: 'runner', group: 'D' }, bracket: 'left' },
-  { id: 'r32_m3',  home: { source: 'winner', group: 'E' }, away: { source: 'runner', group: 'F' }, bracket: 'left' },
-  { id: 'r32_m4',  home: { source: 'winner', group: 'G' }, away: { source: 'runner', group: 'H' }, bracket: 'left' },
-  { id: 'r32_m5',  home: { source: 'winner', group: 'B' }, away: { source: 'runner', group: 'A' }, bracket: 'left' },
-  { id: 'r32_m6',  home: { source: 'winner', group: 'D' }, away: { source: 'runner', group: 'C' }, bracket: 'left' },
-  { id: 'r32_m7',  home: { source: 'winner', group: 'F' }, away: { source: 'runner', group: 'E' }, bracket: 'left' },
-  { id: 'r32_m8',  home: { source: 'winner', group: 'H' }, away: { source: 'runner', group: 'G' }, bracket: 'left' },
-  { id: 'r32_m9',  home: { source: 'winner', group: 'I' }, away: { source: 'runner', group: 'J' }, bracket: 'right' },
-  { id: 'r32_m10', home: { source: 'winner', group: 'K' }, away: { source: 'runner', group: 'L' }, bracket: 'right' },
-  { id: 'r32_m11', home: { source: 'winner', group: 'J' }, away: { source: 'runner', group: 'I' }, bracket: 'right' },
-  { id: 'r32_m12', home: { source: 'winner', group: 'L' }, away: { source: 'runner', group: 'K' }, bracket: 'right' },
-  // Last 4 R32 slots seeded by best 3rd-place teams (group TBD at tournament time)
-  { id: 'r32_m13', home: { source: 'third', group: 'A' }, away: { source: 'third', group: 'B' }, bracket: 'right' },
-  { id: 'r32_m14', home: { source: 'third', group: 'C' }, away: { source: 'third', group: 'D' }, bracket: 'right' },
-  { id: 'r32_m15', home: { source: 'third', group: 'E' }, away: { source: 'third', group: 'F' }, bracket: 'right' },
-  { id: 'r32_m16', home: { source: 'third', group: 'G' }, away: { source: 'third', group: 'H' }, bracket: 'right' },
+  // M73: 2A vs 2B
+  { id: 'r32_m1',  home: { source: 'runner', group: 'A' }, away: { source: 'runner', group: 'B' }, bracket: 'left' },
+  // M74: 1E vs 3(A/B/C/D/F)
+  { id: 'r32_m2',  home: { source: 'winner', group: 'E' }, away: { source: 'third', groups: ['A','B','C','D','F'] }, bracket: 'left' },
+  // M75: 1F vs 2C
+  { id: 'r32_m3',  home: { source: 'winner', group: 'F' }, away: { source: 'runner', group: 'C' }, bracket: 'left' },
+  // M76: 1C vs 2F
+  { id: 'r32_m4',  home: { source: 'winner', group: 'C' }, away: { source: 'runner', group: 'F' }, bracket: 'left' },
+  // M77: 1I vs 3(C/D/F/G/H)
+  { id: 'r32_m5',  home: { source: 'winner', group: 'I' }, away: { source: 'third', groups: ['C','D','F','G','H'] }, bracket: 'left' },
+  // M78: 2E vs 2I
+  { id: 'r32_m6',  home: { source: 'runner', group: 'E' }, away: { source: 'runner', group: 'I' }, bracket: 'left' },
+  // M79: 1A vs 3(C/E/F/H/I)
+  { id: 'r32_m7',  home: { source: 'winner', group: 'A' }, away: { source: 'third', groups: ['C','E','F','H','I'] }, bracket: 'left' },
+  // M80: 1L vs 3(E/H/I/J/K)
+  { id: 'r32_m8',  home: { source: 'winner', group: 'L' }, away: { source: 'third', groups: ['E','H','I','J','K'] }, bracket: 'right' },
+  // M81: 1D vs 3(B/E/F/I/J)
+  { id: 'r32_m9',  home: { source: 'winner', group: 'D' }, away: { source: 'third', groups: ['B','E','F','I','J'] }, bracket: 'right' },
+  // M82: 1G vs 3(A/E/H/I/J)
+  { id: 'r32_m10', home: { source: 'winner', group: 'G' }, away: { source: 'third', groups: ['A','E','H','I','J'] }, bracket: 'right' },
+  // M83: 2K vs 2L
+  { id: 'r32_m11', home: { source: 'runner', group: 'K' }, away: { source: 'runner', group: 'L' }, bracket: 'right' },
+  // M84: 1H vs 2J
+  { id: 'r32_m12', home: { source: 'winner', group: 'H' }, away: { source: 'runner', group: 'J' }, bracket: 'right' },
+  // M85: 1B vs 3(E/F/G/I/J)
+  { id: 'r32_m13', home: { source: 'winner', group: 'B' }, away: { source: 'third', groups: ['E','F','G','I','J'] }, bracket: 'right' },
+  // M86: 1J vs 2H
+  { id: 'r32_m14', home: { source: 'winner', group: 'J' }, away: { source: 'runner', group: 'H' }, bracket: 'right' },
+  // M87: 1K vs 3(D/E/I/J/L)
+  { id: 'r32_m15', home: { source: 'winner', group: 'K' }, away: { source: 'third', groups: ['D','E','I','J','L'] }, bracket: 'right' },
+  // M88: 2D vs 2G
+  { id: 'r32_m16', home: { source: 'runner', group: 'D' }, away: { source: 'runner', group: 'G' }, bracket: 'right' },
 ]
 
 export const BRACKET_TREE = {
-  r16_m1: ['r32_m1', 'r32_m2'],
-  r16_m2: ['r32_m3', 'r32_m4'],
-  r16_m3: ['r32_m5', 'r32_m6'],
-  r16_m4: ['r32_m7', 'r32_m8'],
-  r16_m5: ['r32_m9',  'r32_m10'],
-  r16_m6: ['r32_m11', 'r32_m12'],
-  r16_m7: ['r32_m13', 'r32_m14'],
-  r16_m8: ['r32_m15', 'r32_m16'],
-  qf_m1: ['r16_m1', 'r16_m2'],
-  qf_m2: ['r16_m3', 'r16_m4'],
-  qf_m3: ['r16_m5', 'r16_m6'],
-  qf_m4: ['r16_m7', 'r16_m8'],
-  sf_m1: ['qf_m1', 'qf_m2'],
-  sf_m2: ['qf_m3', 'qf_m4'],
-  final: ['sf_m1', 'sf_m2'],
+  // R32 → R16
+  r16_m1: ['r32_m2', 'r32_m5'],    // W74 vs W77
+  r16_m2: ['r32_m1', 'r32_m3'],    // W73 vs W75
+  r16_m3: ['r32_m4', 'r32_m6'],    // W76 vs W78
+  r16_m4: ['r32_m7', 'r32_m8'],    // W79 vs W80
+  r16_m5: ['r32_m11', 'r32_m12'],  // W83 vs W84
+  r16_m6: ['r32_m9',  'r32_m10'],  // W81 vs W82
+  r16_m7: ['r32_m14', 'r32_m16'],  // W86 vs W88
+  r16_m8: ['r32_m13', 'r32_m15'],  // W85 vs W87
+  // R16 → QF
+  qf_m1: ['r16_m1', 'r16_m2'],    // W89 vs W90
+  qf_m2: ['r16_m5', 'r16_m6'],    // W93 vs W94
+  qf_m3: ['r16_m3', 'r16_m4'],    // W91 vs W92
+  qf_m4: ['r16_m7', 'r16_m8'],    // W95 vs W96
+  // QF → SF
+  sf_m1: ['qf_m1', 'qf_m2'],      // W97 vs W98
+  sf_m2: ['qf_m3', 'qf_m4'],      // W99 vs W100
+  // SF → Final & 3rd place
+  final:       ['sf_m1', 'sf_m2'],
   third_place: ['sf_m1', 'sf_m2'],
 } as const
 
