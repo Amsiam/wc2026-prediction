@@ -1,72 +1,72 @@
 export interface Team {
   id: string        // FIFA 3-letter code or placeholder code
   name: string
-  flag: string      // emoji flag
+  flagCode: string  // ISO 3166-1-alpha-2 lowercase, e.g. 'ar', 'gb-eng'
   group: string     // "A"–"L"
   placeholder?: boolean  // true for teams not yet confirmed
 }
 
 export const TEAMS: Team[] = [
   // Group A
-  { id: 'MEX', name: 'Mexico',       flag: '🇲🇽', group: 'A' },
-  { id: 'RSA', name: 'South Africa', flag: '🇿🇦', group: 'A' },
-  { id: 'KOR', name: 'South Korea',  flag: '🇰🇷', group: 'A' },
-  { id: 'UPOD', name: 'UEFA PO-D Winner', flag: '🏴', group: 'A', placeholder: true },
+  { id: 'MEX',  name: 'Mexico',              flagCode: 'mx',     group: 'A' },
+  { id: 'RSA',  name: 'South Africa',        flagCode: 'za',     group: 'A' },
+  { id: 'KOR',  name: 'South Korea',         flagCode: 'kr',     group: 'A' },
+  { id: 'UPOD', name: 'UEFA PO-D Winner',    flagCode: 'un',     group: 'A', placeholder: true },
   // Group B
-  { id: 'CAN', name: 'Canada',      flag: '🇨🇦', group: 'B' },
-  { id: 'SUI', name: 'Switzerland', flag: '🇨🇭', group: 'B' },
-  { id: 'QAT', name: 'Qatar',       flag: '🇶🇦', group: 'B' },
-  { id: 'UPOA', name: 'UEFA PO-A Winner', flag: '🏴', group: 'B', placeholder: true },
+  { id: 'CAN',  name: 'Canada',              flagCode: 'ca',     group: 'B' },
+  { id: 'SUI',  name: 'Switzerland',         flagCode: 'ch',     group: 'B' },
+  { id: 'QAT',  name: 'Qatar',               flagCode: 'qa',     group: 'B' },
+  { id: 'UPOA', name: 'UEFA PO-A Winner',    flagCode: 'un',     group: 'B', placeholder: true },
   // Group C
-  { id: 'BRA', name: 'Brazil',   flag: '🇧🇷', group: 'C' },
-  { id: 'SCO', name: 'Scotland', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', group: 'C' },
-  { id: 'MAR', name: 'Morocco',  flag: '🇲🇦', group: 'C' },
-  { id: 'HAI', name: 'Haiti',    flag: '🇭🇹', group: 'C' },
+  { id: 'BRA',  name: 'Brazil',              flagCode: 'br',     group: 'C' },
+  { id: 'SCO',  name: 'Scotland',            flagCode: 'gb-sct', group: 'C' },
+  { id: 'MAR',  name: 'Morocco',             flagCode: 'ma',     group: 'C' },
+  { id: 'HAI',  name: 'Haiti',               flagCode: 'ht',     group: 'C' },
   // Group D
-  { id: 'USA', name: 'United States', flag: '🇺🇸', group: 'D' },
-  { id: 'PAR', name: 'Paraguay',     flag: '🇵🇾', group: 'D' },
-  { id: 'AUS', name: 'Australia',    flag: '🇦🇺', group: 'D' },
-  { id: 'UPOC', name: 'UEFA PO-C Winner', flag: '🏴', group: 'D', placeholder: true },
+  { id: 'USA',  name: 'United States',       flagCode: 'us',     group: 'D' },
+  { id: 'PAR',  name: 'Paraguay',            flagCode: 'py',     group: 'D' },
+  { id: 'AUS',  name: 'Australia',           flagCode: 'au',     group: 'D' },
+  { id: 'UPOC', name: 'UEFA PO-C Winner',    flagCode: 'un',     group: 'D', placeholder: true },
   // Group E
-  { id: 'GER', name: 'Germany',     flag: '🇩🇪', group: 'E' },
-  { id: 'CUW', name: 'Curaçao',     flag: '🇨🇼', group: 'E' },
-  { id: 'CIV', name: 'Ivory Coast', flag: '🇨🇮', group: 'E' },
-  { id: 'ECU', name: 'Ecuador',     flag: '🇪🇨', group: 'E' },
+  { id: 'GER',  name: 'Germany',             flagCode: 'de',     group: 'E' },
+  { id: 'CUW',  name: 'Curaçao',             flagCode: 'cw',     group: 'E' },
+  { id: 'CIV',  name: 'Ivory Coast',         flagCode: 'ci',     group: 'E' },
+  { id: 'ECU',  name: 'Ecuador',             flagCode: 'ec',     group: 'E' },
   // Group F
-  { id: 'NED', name: 'Netherlands', flag: '🇳🇱', group: 'F' },
-  { id: 'JPN', name: 'Japan',       flag: '🇯🇵', group: 'F' },
-  { id: 'TUN', name: 'Tunisia',     flag: '🇹🇳', group: 'F' },
-  { id: 'UPOB', name: 'UEFA PO-B Winner', flag: '🏴', group: 'F', placeholder: true },
+  { id: 'NED',  name: 'Netherlands',         flagCode: 'nl',     group: 'F' },
+  { id: 'JPN',  name: 'Japan',               flagCode: 'jp',     group: 'F' },
+  { id: 'TUN',  name: 'Tunisia',             flagCode: 'tn',     group: 'F' },
+  { id: 'UPOB', name: 'UEFA PO-B Winner',    flagCode: 'un',     group: 'F', placeholder: true },
   // Group G
-  { id: 'BEL', name: 'Belgium',     flag: '🇧🇪', group: 'G' },
-  { id: 'EGY', name: 'Egypt',       flag: '🇪🇬', group: 'G' },
-  { id: 'IRN', name: 'Iran',        flag: '🇮🇷', group: 'G' },
-  { id: 'NZL', name: 'New Zealand', flag: '🇳🇿', group: 'G' },
+  { id: 'BEL',  name: 'Belgium',             flagCode: 'be',     group: 'G' },
+  { id: 'EGY',  name: 'Egypt',               flagCode: 'eg',     group: 'G' },
+  { id: 'IRN',  name: 'Iran',                flagCode: 'ir',     group: 'G' },
+  { id: 'NZL',  name: 'New Zealand',         flagCode: 'nz',     group: 'G' },
   // Group H
-  { id: 'ESP', name: 'Spain',       flag: '🇪🇸', group: 'H' },
-  { id: 'CPV', name: 'Cape Verde',  flag: '🇨🇻', group: 'H' },
-  { id: 'SAU', name: 'Saudi Arabia',flag: '🇸🇦', group: 'H' },
-  { id: 'URU', name: 'Uruguay',     flag: '🇺🇾', group: 'H' },
+  { id: 'ESP',  name: 'Spain',               flagCode: 'es',     group: 'H' },
+  { id: 'CPV',  name: 'Cape Verde',          flagCode: 'cv',     group: 'H' },
+  { id: 'SAU',  name: 'Saudi Arabia',        flagCode: 'sa',     group: 'H' },
+  { id: 'URU',  name: 'Uruguay',             flagCode: 'uy',     group: 'H' },
   // Group I
-  { id: 'FRA', name: 'France',   flag: '🇫🇷', group: 'I' },
-  { id: 'SEN', name: 'Senegal',  flag: '🇸🇳', group: 'I' },
-  { id: 'NOR', name: 'Norway',   flag: '🇳🇴', group: 'I' },
-  { id: 'IPO2', name: 'Inter-conf PO Winner 2', flag: '🏴', group: 'I', placeholder: true },
+  { id: 'FRA',  name: 'France',              flagCode: 'fr',     group: 'I' },
+  { id: 'SEN',  name: 'Senegal',             flagCode: 'sn',     group: 'I' },
+  { id: 'NOR',  name: 'Norway',              flagCode: 'no',     group: 'I' },
+  { id: 'IPO2', name: 'Inter-conf PO Winner 2', flagCode: 'un', group: 'I', placeholder: true },
   // Group J
-  { id: 'ARG', name: 'Argentina', flag: '🇦🇷', group: 'J' },
-  { id: 'ALG', name: 'Algeria',   flag: '🇩🇿', group: 'J' },
-  { id: 'AUT', name: 'Austria',   flag: '🇦🇹', group: 'J' },
-  { id: 'JOR', name: 'Jordan',    flag: '🇯🇴', group: 'J' },
+  { id: 'ARG',  name: 'Argentina',           flagCode: 'ar',     group: 'J' },
+  { id: 'ALG',  name: 'Algeria',             flagCode: 'dz',     group: 'J' },
+  { id: 'AUT',  name: 'Austria',             flagCode: 'at',     group: 'J' },
+  { id: 'JOR',  name: 'Jordan',              flagCode: 'jo',     group: 'J' },
   // Group K
-  { id: 'POR', name: 'Portugal',   flag: '🇵🇹', group: 'K' },
-  { id: 'COL', name: 'Colombia',   flag: '🇨🇴', group: 'K' },
-  { id: 'UZB', name: 'Uzbekistan', flag: '🇺🇿', group: 'K' },
-  { id: 'IPO1', name: 'Inter-conf PO Winner 1', flag: '🏴', group: 'K', placeholder: true },
+  { id: 'POR',  name: 'Portugal',            flagCode: 'pt',     group: 'K' },
+  { id: 'COL',  name: 'Colombia',            flagCode: 'co',     group: 'K' },
+  { id: 'UZB',  name: 'Uzbekistan',          flagCode: 'uz',     group: 'K' },
+  { id: 'IPO1', name: 'Inter-conf PO Winner 1', flagCode: 'un', group: 'K', placeholder: true },
   // Group L
-  { id: 'ENG', name: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', group: 'L' },
-  { id: 'CRO', name: 'Croatia', flag: '🇭🇷', group: 'L' },
-  { id: 'GHA', name: 'Ghana',   flag: '🇬🇭', group: 'L' },
-  { id: 'PAN', name: 'Panama',  flag: '🇵🇦', group: 'L' },
+  { id: 'ENG',  name: 'England',             flagCode: 'gb-eng', group: 'L' },
+  { id: 'CRO',  name: 'Croatia',             flagCode: 'hr',     group: 'L' },
+  { id: 'GHA',  name: 'Ghana',               flagCode: 'gh',     group: 'L' },
+  { id: 'PAN',  name: 'Panama',              flagCode: 'pa',     group: 'L' },
 ]
 
 export const GROUPS = ['A','B','C','D','E','F','G','H','I','J','K','L'] as const
