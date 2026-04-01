@@ -2,15 +2,16 @@ import { defineConfig } from 'vite'
 import { devtools } from '@tanstack/devtools-vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
-import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 const config = defineConfig({
+  esbuild: {
+    jsxInject: `import React from 'react'`,
+  },
   plugins: [
     devtools(),
     tailwindcss(),
     tanstackStart({ srcDirectory: 'app' }),
-    viteReact(),
     tsconfigPaths({ projects: ['./tsconfig.json'] }),
   ],
   test: {

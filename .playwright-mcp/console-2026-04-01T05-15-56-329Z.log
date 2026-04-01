@@ -1,0 +1,15 @@
+[     952ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=99d7d547:20102
+[    1029ms] ReferenceError: React is not defined
+    at http://localhost:3000/@id/virtual:tanstack-start-client-entry:7:21
+    at exports.startTransition (http://localhost:3000/node_modules/.vite/deps/chunk-FCVBRA66.js?v=9110fd2e:877:29)
+    at http://localhost:3000/@id/virtual:tanstack-start-client-entry:4:1
+[    9571ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=99d7d547:20102
+[    9682ms] ReferenceError: React is not defined
+    at http://localhost:3000/@id/virtual:tanstack-start-client-entry:7:21
+    at exports.startTransition (http://localhost:3000/node_modules/.vite/deps/chunk-FCVBRA66.js?v=9110fd2e:877:29)
+    at http://localhost:3000/@id/virtual:tanstack-start-client-entry:4:1
+[   20041ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=99d7d547:20102
+[   20231ms] ReferenceError: React is not defined
+    at http://localhost:3000/@id/virtual:tanstack-start-client-entry:7:21
+    at exports.startTransition (http://localhost:3000/node_modules/.vite/deps/chunk-FCVBRA66.js?v=9110fd2e:877:29)
+    at http://localhost:3000/@id/virtual:tanstack-start-client-entry:4:1

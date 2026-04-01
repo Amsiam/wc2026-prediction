@@ -1,0 +1,392 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: WC 2026 Predictor
+      - generic [ref=e6]: 0 / 32 teams placed
+    - generic [ref=e7]:
+      - link "Schedule" [ref=e8] [cursor=pointer]:
+        - /url: /schedule
+      - button "Copy link" [ref=e9]
+      - button "Generate images" [disabled] [ref=e10]
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]: TBD
+          - generic [ref=e14]: TBD
+          - generic [ref=e15]: TBD
+          - generic [ref=e16]: TBD
+          - generic [ref=e17]: TBD
+          - generic [ref=e18]: TBD
+          - generic [ref=e19]: TBD
+          - generic [ref=e20]: TBD
+        - generic [ref=e21]:
+          - generic [ref=e22]: TBD
+          - generic [ref=e23]: TBD
+          - generic [ref=e24]: TBD
+          - generic [ref=e25]: TBD
+        - generic [ref=e26]:
+          - generic [ref=e27]: TBD
+          - generic [ref=e28]: TBD
+        - generic [ref=e30]: TBD
+        - generic [ref=e32]: TBD
+        - generic [ref=e34]: TBD
+        - generic [ref=e35]:
+          - generic [ref=e36]: TBD
+          - generic [ref=e37]: TBD
+        - generic [ref=e38]:
+          - generic [ref=e39]: TBD
+          - generic [ref=e40]: TBD
+          - generic [ref=e41]: TBD
+          - generic [ref=e42]: TBD
+        - generic [ref=e43]:
+          - generic [ref=e44]: TBD
+          - generic [ref=e45]: TBD
+          - generic [ref=e46]: TBD
+          - generic [ref=e47]: TBD
+          - generic [ref=e48]: TBD
+          - generic [ref=e49]: TBD
+          - generic [ref=e50]: TBD
+          - generic [ref=e51]: TBD
+      - generic [ref=e52]:
+        - heading "⚽ FIFA World Cup 2026" [level=1] [ref=e53]
+        - generic [ref=e54]:
+          - generic [ref=e55]:
+            - generic [ref=e56]: 🥇
+            - generic [ref=e57]: Champion
+            - generic [ref=e58]: TBD
+          - generic [ref=e59]:
+            - generic [ref=e60]: 🥈
+            - generic [ref=e61]: Runner-up
+            - generic [ref=e62]: TBD
+          - generic [ref=e63]:
+            - generic [ref=e64]: 🥉
+            - generic [ref=e65]: 3rd Place
+            - generic [ref=e66]: TBD
+  - navigation [ref=e67]:
+    - button "Group Stage" [ref=e68]
+    - button "Knockout" [ref=e69]
+  - main [ref=e70]:
+    - generic [ref=e71]:
+      - generic [ref=e72]:
+        - heading "Group A" [level=3] [ref=e74]
+        - generic [ref=e75]:
+          - button "Mexico" [ref=e76]:
+            - generic [ref=e78]: Mexico
+          - button "South Africa" [ref=e79]:
+            - generic [ref=e81]: South Africa
+          - button "South Korea" [ref=e82]:
+            - generic [ref=e84]: South Korea
+          - button "UEFA PO-D Winner" [ref=e85]:
+            - generic [ref=e87]: UEFA PO-D Winner
+        - generic [ref=e88]:
+          - generic [ref=e89]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e90]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e91]:
+        - heading "Group B" [level=3] [ref=e93]
+        - generic [ref=e94]:
+          - button "Canada" [ref=e95]:
+            - generic [ref=e97]: Canada
+          - button "Switzerland" [ref=e98]:
+            - generic [ref=e100]: Switzerland
+          - button "Qatar" [ref=e101]:
+            - generic [ref=e103]: Qatar
+          - button "UEFA PO-A Winner" [ref=e104]:
+            - generic [ref=e106]: UEFA PO-A Winner
+        - generic [ref=e107]:
+          - generic [ref=e108]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e109]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e110]:
+        - heading "Group C" [level=3] [ref=e112]
+        - generic [ref=e113]:
+          - button "Brazil" [ref=e114]:
+            - generic [ref=e116]: Brazil
+          - button "Scotland" [ref=e117]:
+            - generic [ref=e119]: Scotland
+          - button "Morocco" [ref=e120]:
+            - generic [ref=e122]: Morocco
+          - button "Haiti" [ref=e123]:
+            - generic [ref=e125]: Haiti
+        - generic [ref=e126]:
+          - generic [ref=e127]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e128]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e129]:
+        - heading "Group D" [level=3] [ref=e131]
+        - generic [ref=e132]:
+          - button "United States" [ref=e133]:
+            - generic [ref=e135]: United States
+          - button "Paraguay" [ref=e136]:
+            - generic [ref=e138]: Paraguay
+          - button "Australia" [ref=e139]:
+            - generic [ref=e141]: Australia
+          - button "UEFA PO-C Winner" [ref=e142]:
+            - generic [ref=e144]: UEFA PO-C Winner
+        - generic [ref=e145]:
+          - generic [ref=e146]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e147]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e148]:
+        - heading "Group E" [level=3] [ref=e150]
+        - generic [ref=e151]:
+          - button "Germany" [ref=e152]:
+            - generic [ref=e154]: Germany
+          - button "Curaçao" [ref=e155]:
+            - generic [ref=e157]: Curaçao
+          - button "Ivory Coast" [ref=e158]:
+            - generic [ref=e160]: Ivory Coast
+          - button "Ecuador" [ref=e161]:
+            - generic [ref=e163]: Ecuador
+        - generic [ref=e164]:
+          - generic [ref=e165]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e166]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e167]:
+        - heading "Group F" [level=3] [ref=e169]
+        - generic [ref=e170]:
+          - button "Netherlands" [ref=e171]:
+            - generic [ref=e173]: Netherlands
+          - button "Japan" [ref=e174]:
+            - generic [ref=e176]: Japan
+          - button "Tunisia" [ref=e177]:
+            - generic [ref=e179]: Tunisia
+          - button "UEFA PO-B Winner" [ref=e180]:
+            - generic [ref=e182]: UEFA PO-B Winner
+        - generic [ref=e183]:
+          - generic [ref=e184]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e185]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e186]:
+        - heading "Group G" [level=3] [ref=e188]
+        - generic [ref=e189]:
+          - button "Belgium" [ref=e190]:
+            - generic [ref=e192]: Belgium
+          - button "Egypt" [ref=e193]:
+            - generic [ref=e195]: Egypt
+          - button "Iran" [ref=e196]:
+            - generic [ref=e198]: Iran
+          - button "New Zealand" [ref=e199]:
+            - generic [ref=e201]: New Zealand
+        - generic [ref=e202]:
+          - generic [ref=e203]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e204]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e205]:
+        - heading "Group H" [level=3] [ref=e207]
+        - generic [ref=e208]:
+          - button "Spain" [ref=e209]:
+            - generic [ref=e211]: Spain
+          - button "Cape Verde" [ref=e212]:
+            - generic [ref=e214]: Cape Verde
+          - button "Saudi Arabia" [ref=e215]:
+            - generic [ref=e217]: Saudi Arabia
+          - button "Uruguay" [ref=e218]:
+            - generic [ref=e220]: Uruguay
+        - generic [ref=e221]:
+          - generic [ref=e222]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e223]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e224]:
+        - heading "Group I" [level=3] [ref=e226]
+        - generic [ref=e227]:
+          - button "France" [ref=e228]:
+            - generic [ref=e230]: France
+          - button "Senegal" [ref=e231]:
+            - generic [ref=e233]: Senegal
+          - button "Norway" [ref=e234]:
+            - generic [ref=e236]: Norway
+          - button "Inter-conf PO Winner 2" [ref=e237]:
+            - generic [ref=e239]: Inter-conf PO Winner 2
+        - generic [ref=e240]:
+          - generic [ref=e241]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e242]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e243]:
+        - heading "Group J" [level=3] [ref=e245]
+        - generic [ref=e246]:
+          - button "Argentina" [ref=e247]:
+            - generic [ref=e249]: Argentina
+          - button "Algeria" [ref=e250]:
+            - generic [ref=e252]: Algeria
+          - button "Austria" [ref=e253]:
+            - generic [ref=e255]: Austria
+          - button "Jordan" [ref=e256]:
+            - generic [ref=e258]: Jordan
+        - generic [ref=e259]:
+          - generic [ref=e260]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e261]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e262]:
+        - heading "Group K" [level=3] [ref=e264]
+        - generic [ref=e265]:
+          - button "Portugal" [ref=e266]:
+            - generic [ref=e268]: Portugal
+          - button "Colombia" [ref=e269]:
+            - generic [ref=e271]: Colombia
+          - button "Uzbekistan" [ref=e272]:
+            - generic [ref=e274]: Uzbekistan
+          - button "Inter-conf PO Winner 1" [ref=e275]:
+            - generic [ref=e277]: Inter-conf PO Winner 1
+        - generic [ref=e278]:
+          - generic [ref=e279]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e280]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
+      - generic [ref=e281]:
+        - heading "Group L" [level=3] [ref=e283]
+        - generic [ref=e284]:
+          - button "England" [ref=e285]:
+            - generic [ref=e287]: England
+          - button "Croatia" [ref=e288]:
+            - generic [ref=e290]: Croatia
+          - button "Ghana" [ref=e291]:
+            - generic [ref=e293]: Ghana
+          - button "Panama" [ref=e294]:
+            - generic [ref=e296]: Panama
+        - generic [ref=e297]:
+          - generic [ref=e298]: "3rd rank:"
+          - combobox "3rd rank:" [ref=e299]:
+            - option "—" [selected]
+            - option "1"
+            - option "2"
+            - option "3"
+            - option "4"
+            - option "5"
+            - option "6"
+            - option "7"
+            - option "8"
+            - option "9"
+            - option "10"
+            - option "11"
+            - option "12"
