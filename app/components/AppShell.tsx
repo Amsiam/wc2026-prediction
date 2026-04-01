@@ -31,6 +31,9 @@ export function AppShell() {
           <span className="text-sm text-gray-400">{placedCount} / 32 teams placed</span>
         </div>
         <div className="flex gap-2">
+          <a href="/schedule" className="text-sm px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">
+            Schedule
+          </a>
           <button
             onClick={copyLink}
             className="text-sm px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600"
