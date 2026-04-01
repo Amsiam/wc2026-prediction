@@ -9,9 +9,9 @@ import tailwindcss from '@tailwindcss/vite'
 const config = defineConfig({
   plugins: [
     devtools(),
-    tsconfigPaths({ projects: ['./tsconfig.json'] }),
     tailwindcss(),
     tanstackStart({ srcDirectory: 'app' }),
+    tsconfigPaths({ projects: ['./tsconfig.json'] }),
   ],
   test: {
     environment: 'jsdom',

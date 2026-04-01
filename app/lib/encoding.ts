@@ -94,6 +94,8 @@ export function decodePicks(encoded: string): BracketState | null {
     const buf = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) buf[i] = binary.charCodeAt(i)
 
+    if (buf.length < 38) return null
+
     const pos = { v: 0 }
     const groups = emptyGroupPicks()
 
@@ -110,7 +112,7 @@ export function decodePicks(encoded: string): BracketState | null {
           groups[g].second = remaining[secondVal].id
         }
       }
-      groups[g].thirdRank = rank === 0 ? null : rank
+      groups[g].thirdRank = (rank === 0 || rank > 12) ? null : rank
     }
 
     const matches = emptyMatchPicks()

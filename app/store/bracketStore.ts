@@ -1,7 +1,7 @@
 import { createStore } from 'zustand/vanilla'
 import { EMPTY_STATE } from '../lib/encoding'
-import { BRACKET_TREE, ALL_MATCH_IDS } from '../data/teams'
-import type { BracketState, GroupPick, TeamId } from './types'
+import { BRACKET_TREE } from '../data/teams'
+import type { BracketState, TeamId } from './types'
 import type { GroupKey, MatchId } from '../data/teams'
 
 export interface BracketActions {
@@ -19,7 +19,7 @@ export type BracketStore = BracketState & BracketActions
 // Map: matchId → list of parent matches that contain this match as a child
 function buildParentMap(): Map<MatchId, MatchId[]> {
   const map = new Map<MatchId, MatchId[]>()
-  for (const [parentId, children] of Object.entries(BRACKET_TREE) as [MatchId, [MatchId, MatchId]][]) {
+  for (const [parentId, children] of Object.entries(BRACKET_TREE) as unknown as [MatchId, [MatchId, MatchId]][]) {
     for (const childId of children) {
       const existing = map.get(childId) ?? []
       existing.push(parentId)
@@ -32,7 +32,7 @@ function buildParentMap(): Map<MatchId, MatchId[]> {
 // Map: matchId → [homeChildId, awayChildId]
 function buildChildrenMap(): Map<MatchId, [MatchId, MatchId]> {
   const map = new Map<MatchId, [MatchId, MatchId]>()
-  for (const [parentId, children] of Object.entries(BRACKET_TREE) as [MatchId, [MatchId, MatchId]][]) {
+  for (const [parentId, children] of Object.entries(BRACKET_TREE) as unknown as [MatchId, [MatchId, MatchId]][]) {
     map.set(parentId, children)
   }
   return map

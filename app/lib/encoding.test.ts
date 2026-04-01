@@ -37,6 +37,12 @@ describe('encodePicks / decodePicks', () => {
     expect(encodePicks(EMPTY_STATE).length).toBeLessThan(60)
   })
 
+  it('returns null for a truncated base64url string', () => {
+    const full = encodePicks(EMPTY_STATE)
+    // truncate to less than valid length
+    expect(decodePicks(full.slice(0, 5))).toBeNull()
+  })
+
   it('roundtrips full state with multiple picks', () => {
     const state: BracketState = {
       groups: {
