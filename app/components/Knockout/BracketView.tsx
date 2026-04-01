@@ -4,7 +4,7 @@ import { bracketStore } from '../../store/bracketStore'
 import { MatchSlot } from './MatchSlot'
 import { TeamPicker } from './TeamPicker'
 import { GroupPositionModal } from './GroupPositionModal'
-import { getTeamById } from '../../data/teams'
+import { getTeamById, BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
 import type { MatchId, Team, GroupKey } from '../../data/teams'
 
 type PickingState =
@@ -69,8 +69,51 @@ export function BracketView() {
     commitPick(matchId, team)
   }
 
+  function findPath(from: MatchId, to: MatchId): MatchId[] | null {
+    if (from === to) return [from]
+    if (to.startsWith('r32')) return null
+    const children = (BRACKET_TREE as Record<string, readonly [string, string]>)[to]
+    if (!children) return null
+    for (const child of children) {
+      const sub = findPath(from, child as MatchId)
+      if (sub) return [...sub, to]
+    }
+    return null
+  }
+
   function commitPick(matchId: MatchId, team: Team) {
+    const state = bracketStore.getState()
+    const groupPick = state.groups[team.group as GroupKey]
+
     bracketStore.getState().clearDownstream(matchId)
+
+    // Determine the correct R32 match for this team based on known position
+    let r32Id: MatchId | undefined
+    if (groupPick?.first === team.id) {
+      const fixture = R32_FIXTURES.find(f =>
+        (f.home.source === 'winner' && f.home.group === team.group) ||
+        (f.away.source === 'winner' && f.away.group === team.group)
+      )
+      r32Id = fixture?.id as MatchId | undefined
+    } else if (groupPick?.second === team.id) {
+      const fixture = R32_FIXTURES.find(f =>
+        (f.home.source === 'runner' && f.home.group === team.group) ||
+        (f.away.source === 'runner' && f.away.group === team.group)
+      )
+      r32Id = fixture?.id as MatchId | undefined
+    }
+
+    if (r32Id) {
+      const path = findPath(r32Id, matchId)
+      if (path) {
+        const { setMatchWinner } = bracketStore.getState()
+        for (const id of path) setMatchWinner(id, team.id)
+        setPicking({ phase: 'idle' })
+        return
+      }
+    }
+
+    // Fallback (3rd-place qualifier or position unknown): basic backfill
     bracketStore.getState().backfillPath(matchId, team.id, 'home')
     setPicking({ phase: 'idle' })
   }
