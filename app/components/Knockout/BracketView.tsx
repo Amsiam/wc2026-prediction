@@ -28,7 +28,7 @@ const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarterfinals', 'Semifinals
 
 function RoundColumn({ matchIds, label, onSlotClick }: { matchIds: MatchId[]; label: string; onSlotClick: (id: MatchId) => void }) {
   return (
-    <div className="flex flex-col justify-around gap-3 min-w-[180px]">
+    <div className="flex flex-col justify-around gap-3 min-w-45">
       <div className="text-xs text-gray-500 text-center font-medium">{label}</div>
       {matchIds.map(id => (
         <MatchSlot key={id} matchId={id} onSlotClick={onSlotClick} />
