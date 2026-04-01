@@ -2,36 +2,50 @@ import { useState } from 'react'
 import { useStore } from 'zustand'
 import { bracketStore } from '../../store/bracketStore'
 import { MatchSlot } from './MatchSlot'
+import { R32MatchSlot } from './R32MatchSlot'
 import { TeamPicker } from './TeamPicker'
 import { GroupPositionModal } from './GroupPositionModal'
-import { getTeamById, BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
+import { getTeamById, BRACKET_TREE } from '../../data/teams'
+import { getValidPositions, getPossibleR32Slots } from '../../lib/bracket'
 import type { MatchId, Team, GroupKey } from '../../data/teams'
+import type { SlotDescriptor } from '../../lib/bracket'
 
 type PickingState =
   | { phase: 'idle' }
   | { phase: 'picking'; matchId: MatchId }
-  | { phase: 'position'; matchId: MatchId; team: Team }
+  | {
+      phase: 'position'
+      matchId: MatchId
+      team: Team
+      validOptions: ('first' | 'second' | 'third')[]
+      thirdSlotOptions: SlotDescriptor[]
+    }
 
+// P1 path (→ sf_m1): r32_m1,2,3,5 (qf_m1) + r32_m9,10,11,12 (qf_m2) on LEFT
+// P2 path (→ sf_m2): r32_m4,6,7,8 (qf_m3) + r32_m13,14,15,16 (qf_m4) on RIGHT
 const LEFT_ROUNDS: MatchId[][] = [
-  ['r32_m1','r32_m2','r32_m3','r32_m4','r32_m5','r32_m6','r32_m7','r32_m8'],
-  ['r16_m1','r16_m2','r16_m3','r16_m4'],
+  ['r32_m1','r32_m2','r32_m3','r32_m5','r32_m9','r32_m10','r32_m11','r32_m12'],
+  ['r16_m1','r16_m2','r16_m5','r16_m6'],
   ['qf_m1','qf_m2'],
   ['sf_m1'],
 ]
 const RIGHT_ROUNDS: MatchId[][] = [
-  ['r32_m9','r32_m10','r32_m11','r32_m12','r32_m13','r32_m14','r32_m15','r32_m16'],
-  ['r16_m5','r16_m6','r16_m7','r16_m8'],
+  ['r32_m4','r32_m6','r32_m7','r32_m8','r32_m13','r32_m14','r32_m15','r32_m16'],
+  ['r16_m3','r16_m4','r16_m7','r16_m8'],
   ['qf_m3','qf_m4'],
   ['sf_m2'],
 ]
 const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarterfinals', 'Semifinals']
 
 function RoundColumn({ matchIds, label, onSlotClick }: { matchIds: MatchId[]; label: string; onSlotClick: (id: MatchId) => void }) {
+  const isR32 = matchIds[0]?.startsWith('r32')
   return (
     <div className="flex flex-col justify-around gap-3 min-w-45">
       <div className="text-xs text-gray-500 text-center font-medium">{label}</div>
       {matchIds.map(id => (
-        <MatchSlot key={id} matchId={id} onSlotClick={onSlotClick} />
+        isR32
+          ? <R32MatchSlot key={id} matchId={id} onSlotClick={onSlotClick} />
+          : <MatchSlot key={id} matchId={id} onSlotClick={onSlotClick} />
       ))}
     </div>
   )
@@ -49,24 +63,41 @@ export function BracketView() {
   function handleTeamSelect(team: Team) {
     if (picking.phase !== 'picking') return
     const { matchId } = picking
-    const state = bracketStore.getState()
-    const groupPick = state.groups[team.group as GroupKey]
-    const positionKnown = groupPick?.first === team.id || groupPick?.second === team.id
+    const groupPick = bracketStore.getState().groups[team.group as GroupKey]
 
-    if (!positionKnown) {
-      setPicking({ phase: 'position', matchId, team })
+    // Position already recorded — commit immediately
+    if (groupPick?.first === team.id)  { commitPick(matchId, team, 'first');  return }
+    if (groupPick?.second === team.id) { commitPick(matchId, team, 'second'); return }
+    if (groupPick?.third === team.id)  { commitPick(matchId, team, 'third');  return }
+
+    const validOptions = getValidPositions(matchId, team.group as GroupKey)
+    const thirdSlotOptions = validOptions.includes('third')
+      ? getPossibleR32Slots(matchId, team.group as GroupKey, 'third')
+      : []
+
+    // Single unambiguous non-third position — skip modal
+    if (validOptions.length === 1 && validOptions[0] !== 'third') {
+      commitPick(matchId, team, validOptions[0])
       return
     }
-    commitPick(matchId, team)
+    // Only third with exactly one slot — no disambiguation needed
+    if (validOptions.length === 1 && validOptions[0] === 'third' && thirdSlotOptions.length === 1) {
+      bracketStore.getState().setGroupThird(team.group as GroupKey, team.id)
+      commitPick(matchId, team, 'third', thirdSlotOptions[0].r32Id)
+      return
+    }
+
+    setPicking({ phase: 'position', matchId, team, validOptions, thirdSlotOptions })
   }
 
-  function handlePositionSelect(position: 'first' | 'second') {
+  function handlePositionSelect(position: 'first' | 'second' | 'third', r32Id?: MatchId) {
     if (picking.phase !== 'position') return
     const { matchId, team } = picking
-    const { setGroupFirst, setGroupSecond } = bracketStore.getState()
-    if (position === 'first') setGroupFirst(team.group as GroupKey, team.id)
-    else setGroupSecond(team.group as GroupKey, team.id)
-    commitPick(matchId, team)
+    const store = bracketStore.getState()
+    if (position === 'first')  store.setGroupFirst(team.group as GroupKey, team.id)
+    if (position === 'second') store.setGroupSecond(team.group as GroupKey, team.id)
+    if (position === 'third')  store.setGroupThird(team.group as GroupKey, team.id)
+    commitPick(matchId, team, position, r32Id)
   }
 
   function findPath(from: MatchId, to: MatchId): MatchId[] | null {
@@ -81,26 +112,18 @@ export function BracketView() {
     return null
   }
 
-  function commitPick(matchId: MatchId, team: Team) {
-    const state = bracketStore.getState()
-    const groupPick = state.groups[team.group as GroupKey]
-
+  function commitPick(
+    matchId: MatchId,
+    team: Team,
+    position: 'first' | 'second' | 'third',
+    explicitR32Id?: MatchId
+  ) {
     bracketStore.getState().clearDownstream(matchId)
 
-    // Determine the correct R32 match for this team based on known position
-    let r32Id: MatchId | undefined
-    if (groupPick?.first === team.id) {
-      const fixture = R32_FIXTURES.find(f =>
-        (f.home.source === 'winner' && f.home.group === team.group) ||
-        (f.away.source === 'winner' && f.away.group === team.group)
-      )
-      r32Id = fixture?.id as MatchId | undefined
-    } else if (groupPick?.second === team.id) {
-      const fixture = R32_FIXTURES.find(f =>
-        (f.home.source === 'runner' && f.home.group === team.group) ||
-        (f.away.source === 'runner' && f.away.group === team.group)
-      )
-      r32Id = fixture?.id as MatchId | undefined
+    let r32Id = explicitR32Id
+    if (!r32Id) {
+      const slots = getPossibleR32Slots(matchId, team.group as GroupKey, position)
+      if (slots.length === 1) r32Id = slots[0].r32Id
     }
 
     if (r32Id) {
@@ -113,7 +136,7 @@ export function BracketView() {
       }
     }
 
-    // Fallback (3rd-place qualifier or position unknown): basic backfill
+    // Fallback: third_place match or unresolvable
     bracketStore.getState().backfillPath(matchId, team.id, 'home')
     setPicking({ phase: 'idle' })
   }
@@ -159,6 +182,8 @@ export function BracketView() {
       {picking.phase === 'position' && (
         <GroupPositionModal
           team={picking.team}
+          validOptions={picking.validOptions}
+          thirdSlotOptions={picking.thirdSlotOptions}
           onSelect={handlePositionSelect}
           onClose={() => setPicking({ phase: 'idle' })}
         />

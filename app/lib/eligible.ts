@@ -1,6 +1,7 @@
 import { R32_FIXTURES, BRACKET_TREE, getGroup } from '../data/teams'
 import type { MatchId, Team, SeedSource } from '../data/teams'
 import type { BracketState } from '../store/types'
+import { getR32Ancestors } from './bracket'
 
 // Get all teams that could be seeded into a given side of an R32 match
 function getSeedPool(seed: SeedSource): Team[] {
@@ -10,17 +11,6 @@ function getSeedPool(seed: SeedSource): Team[] {
   }
   // winner or runner: teams from the specific group
   return seed.group ? getGroup(seed.group) : []
-}
-
-// Collect all R32 match IDs that are ancestors of (or equal to) a given match
-function getR32Ancestors(matchId: MatchId): MatchId[] {
-  if (matchId.startsWith('r32')) return [matchId]
-  const children = (BRACKET_TREE as Record<string, readonly [string, string]>)[matchId]
-  if (!children) return []
-  return [
-    ...getR32Ancestors(children[0] as MatchId),
-    ...getR32Ancestors(children[1] as MatchId),
-  ]
 }
 
 // Get all teams in the seed pool for a given R32 match

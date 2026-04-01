@@ -13,11 +13,11 @@ describe('encodePicks / decodePicks', () => {
       ...EMPTY_STATE,
       groups: {
         ...EMPTY_STATE.groups,
-        A: { first: 'MEX', second: 'RSA', thirdRank: 3 },
+        A: { first: 'MEX', second: 'RSA', third: null, thirdRank: 3 },
       },
     }
     const decoded = decodePicks(encodePicks(state))
-    expect(decoded!.groups.A).toEqual({ first: 'MEX', second: 'RSA', thirdRank: 3 })
+    expect(decoded!.groups.A).toEqual({ first: 'MEX', second: 'RSA', third: null, thirdRank: 3 })
   })
 
   it('roundtrips a match winner', () => {
@@ -47,8 +47,8 @@ describe('encodePicks / decodePicks', () => {
     const state: BracketState = {
       groups: {
         ...EMPTY_STATE.groups,
-        A: { first: 'MEX', second: 'RSA', thirdRank: 1 },
-        J: { first: 'ARG', second: 'ALG', thirdRank: 2 },
+        A: { first: 'MEX', second: 'RSA', third: null, thirdRank: 1 },
+        J: { first: 'ARG', second: 'ALG', third: null, thirdRank: 2 },
       },
       matches: {
         ...EMPTY_STATE.matches,
@@ -57,8 +57,8 @@ describe('encodePicks / decodePicks', () => {
       },
     }
     const decoded = decodePicks(encodePicks(state))!
-    expect(decoded.groups.A).toEqual({ first: 'MEX', second: 'RSA', thirdRank: 1 })
-    expect(decoded.groups.J).toEqual({ first: 'ARG', second: 'ALG', thirdRank: 2 })
+    expect(decoded.groups.A).toEqual({ first: 'MEX', second: 'RSA', third: null, thirdRank: 1 })
+    expect(decoded.groups.J).toEqual({ first: 'ARG', second: 'ALG', third: null, thirdRank: 2 })
     expect(decoded.matches.r32_m1.winner).toBe('MEX')
     expect(decoded.matches.final.winner).toBe('ARG')
   })

@@ -5,6 +5,7 @@ export type TeamId = string // FIFA code e.g. "ARG"
 export interface GroupPick {
   first: TeamId | null
   second: TeamId | null
+  third: TeamId | null    // best 3rd-place qualifier from this group
   thirdRank: number | null // 1=best qualifier, 12=worst; null=unset
 }
 

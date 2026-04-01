@@ -4,7 +4,7 @@ import type { GroupKey, MatchId } from '../data/teams'
 
 function emptyGroupPicks(): Record<GroupKey, GroupPick> {
   return Object.fromEntries(
-    GROUPS.map(g => [g, { first: null, second: null, thirdRank: null }])
+    GROUPS.map(g => [g, { first: null, second: null, third: null, thirdRank: null }])
   ) as Record<GroupKey, GroupPick>
 }
 
@@ -40,17 +40,18 @@ function readBits(buf: Uint8Array, bitPos: { v: number }, count: number): number
   return value
 }
 
-// Encoding scheme (revised):
-// Groups: 9 bits × 12 groups = 108 bits
+// Encoding scheme:
+// Groups: 12 bits × 12 groups = 144 bits
 //   - 3 bits: first place index (0–3 = team index, 4 = null)
 //   - 2 bits: second place index in remaining 3 teams (0–2, 3 = null)
+//   - 3 bits: third place index (0–3 = team index, 4 = null)
 //   - 4 bits: thirdRank (0 = null, 1–12 = rank)
 // Matches: 6 bits × 32 matches = 192 bits
 //   - values 0–47 = TEAMS index, 63 = null
-// Total: 300 bits = 38 bytes → base64url ~51 chars
+// Total: 336 bits = 42 bytes → base64url ~56 chars
 
 export function encodePicks(state: BracketState): string {
-  const buf = new Uint8Array(38)
+  const buf = new Uint8Array(42)
   const pos = { v: 0 }
 
   for (const g of GROUPS) {
@@ -69,6 +70,10 @@ export function encodePicks(state: BracketState): string {
     } else {
       writeBits(buf, pos, 3, 2) // null
     }
+
+    // 3 bits: third place team index (0–3 = team index, 4 = null)
+    const thirdIdx = pick.third ? teams.findIndex(t => t.id === pick.third) : -1
+    writeBits(buf, pos, thirdIdx === -1 ? 4 : thirdIdx, 3)
 
     // 4 bits: 0 = null, 1–12 = rank
     writeBits(buf, pos, pick.thirdRank ?? 0, 4)
@@ -94,7 +99,7 @@ export function decodePicks(encoded: string): BracketState | null {
     const buf = new Uint8Array(binary.length)
     for (let i = 0; i < binary.length; i++) buf[i] = binary.charCodeAt(i)
 
-    if (buf.length < 38) return null
+    if (buf.length < 42) return null
 
     const pos = { v: 0 }
     const groups = emptyGroupPicks()
@@ -103,6 +108,7 @@ export function decodePicks(encoded: string): BracketState | null {
       const teams = getGroup(g)
       const firstVal = readBits(buf, pos, 3)
       const secondVal = readBits(buf, pos, 2)
+      const thirdVal = readBits(buf, pos, 3)
       const rank = readBits(buf, pos, 4)
 
       if (firstVal < teams.length) {
@@ -111,6 +117,9 @@ export function decodePicks(encoded: string): BracketState | null {
         if (secondVal < remaining.length) {
           groups[g].second = remaining[secondVal].id
         }
+      }
+      if (thirdVal < teams.length) {
+        groups[g].third = teams[thirdVal].id
       }
       groups[g].thirdRank = (rank === 0 || rank > 12) ? null : rank
     }

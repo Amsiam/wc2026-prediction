@@ -7,6 +7,7 @@ import type { GroupKey, MatchId } from '../data/teams'
 export interface BracketActions {
   setGroupFirst: (group: GroupKey, teamId: TeamId | null) => void
   setGroupSecond: (group: GroupKey, teamId: TeamId | null) => void
+  setGroupThird: (group: GroupKey, teamId: TeamId | null) => void
   setThirdRank: (group: GroupKey, rank: number | null) => void
   setMatchWinner: (matchId: MatchId, teamId: TeamId | null) => void
   backfillPath: (matchId: MatchId, teamId: TeamId, side: 'home' | 'away') => void
@@ -88,6 +89,11 @@ export function createBracketStore() {
     setGroupSecond: (group, teamId) =>
       set(s => ({
         groups: { ...s.groups, [group]: { ...s.groups[group], second: teamId } },
+      })),
+
+    setGroupThird: (group, teamId) =>
+      set(s => ({
+        groups: { ...s.groups, [group]: { ...s.groups[group], third: teamId } },
       })),
 
     setThirdRank: (group, rank) =>

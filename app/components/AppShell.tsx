@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { bracketStore } from '../store/bracketStore'
+import { groupScoreStore } from '../store/groupScoreStore'
+import { EMPTY_STATE } from '../lib/encoding'
 import { ALL_MATCH_IDS } from '../data/teams'
 import { GroupGrid } from './GroupStage/GroupGrid'
 import { BracketView } from './Knockout/BracketView'
@@ -23,6 +25,12 @@ export function AppShell() {
       .then(() => alert('Link copied!'))
   }
 
+  function handleClear() {
+    if (!confirm('Reset all predictions and scores?')) return
+    bracketStore.getState().loadState(EMPTY_STATE)
+    groupScoreStore.setState({ scores: {}, overrides: {}, activeGroupModal: null })
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
@@ -39,6 +47,12 @@ export function AppShell() {
             className="text-sm px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600"
           >
             Copy link
+          </button>
+          <button
+            onClick={handleClear}
+            className="text-sm px-3 py-1.5 rounded bg-red-900 hover:bg-red-800 text-red-300"
+          >
+            Clear
           </button>
           <GenerateButton />
         </div>
