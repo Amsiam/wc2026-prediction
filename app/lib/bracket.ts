@@ -1,5 +1,6 @@
-import { R32_FIXTURES, BRACKET_TREE } from '../data/teams'
-import type { MatchId, GroupKey, R32Fixture } from '../data/teams'
+import { R32_FIXTURES, BRACKET_TREE, getGroup, getTeamById } from '../data/teams'
+import type { MatchId, GroupKey, R32Fixture, Team } from '../data/teams'
+import type { BracketState } from '../store/types'
 
 /** All R32-level ancestor match IDs of a given match (or the match itself if it is R32) */
 export function getR32Ancestors(matchId: MatchId): MatchId[] {
@@ -87,4 +88,87 @@ export function getPossibleR32Slots(
   }
 
   return result
+}
+
+export function getR32SlotPool(r32Id: MatchId, side: 'home' | 'away', state: BracketState): Team[] {
+  const fixture = R32_FIXTURES.find(f => f.id === r32Id)
+  if (!fixture) return []
+  const seed = side === 'home' ? fixture.home : fixture.away
+
+  let base: Team[]
+  if (seed.source === 'third') {
+    base = (seed.groups ?? []).flatMap(g => getGroup(g))
+  } else {
+    base = seed.group ? getGroup(seed.group) : []
+  }
+
+  return base.filter(team => {
+    const gp = state.groups[team.group as GroupKey]
+    if (!gp) return true
+    if (seed.source === 'winner' && (gp.second === team.id || gp.third === team.id)) return false
+    if (seed.source === 'runner' && (gp.first === team.id || gp.third === team.id)) return false
+    if (seed.source === 'third') {
+      if (gp.first === team.id || gp.second === team.id) return false
+      // Exclude if this group's 3rd is already assigned to a different R32 slot
+      if (gp.thirdSlot !== null && gp.thirdSlot !== r32Id) return false
+    }
+    return true
+  })
+}
+
+/**
+ * Recursively collects all teams that could still win `matchId`, using
+ * actual match winners at every level to narrow the result.
+ * - If the match already has a winner → just that team.
+ * - If it's an R32 leaf → the eligible participants for both slots.
+ * - Otherwise → union of reachable teams from both child matches.
+ */
+function getReachableTeams(matchId: MatchId, state: BracketState): Team[] {
+  const winner = state.matches[matchId]?.winner
+  if (winner) {
+    const t = getTeamById(winner)
+    return t ? [t] : []
+  }
+
+  const children = (BRACKET_TREE as Record<string, readonly [string, string]>)[matchId]
+  if (!children) {
+    // R32 leaf — return eligible participants for both slots
+    const poolMap = new Map<string, Team>()
+    for (const t of getR32SlotPool(matchId, 'home', state)) poolMap.set(t.id, t)
+    for (const t of getR32SlotPool(matchId, 'away', state)) poolMap.set(t.id, t)
+    return [...poolMap.values()]
+  }
+
+  const poolMap = new Map<string, Team>()
+  for (const childId of children) {
+    for (const t of getReachableTeams(childId as MatchId, state)) poolMap.set(t.id, t)
+  }
+  return [...poolMap.values()]
+}
+
+export function getSlotPool(matchId: MatchId, side: 'home' | 'away', state: BracketState): Team[] {
+  const children = (BRACKET_TREE as Record<string, readonly string[]>)[matchId]
+  if (!children) return []
+  const childId = children[side === 'home' ? 0 : 1] as MatchId
+  return getReachableTeams(childId, state)
+}
+
+export function inferTeamR32Entry(
+  team: Team,
+  childId: MatchId
+): { r32Id: MatchId; position: 'first' | 'second' | 'third'; group: GroupKey } | null {
+  const r32Ids: MatchId[] = childId.startsWith('r32') ? [childId] : getR32Ancestors(childId)
+  for (const r32Id of r32Ids) {
+    const fixture = R32_FIXTURES.find(f => f.id === r32Id)
+    if (!fixture) continue
+    for (const seed of [fixture.home, fixture.away]) {
+      if (seed.source !== 'third' && seed.group === (team.group as GroupKey)) {
+        return { r32Id, position: seed.source === 'winner' ? 'first' : 'second', group: seed.group! }
+      }
+      if (seed.source === 'third' && (seed.groups ?? []).includes(team.group as GroupKey)) {
+        return { r32Id, position: 'third', group: team.group as GroupKey }
+      }
+    }
+  }
+  return null
 }

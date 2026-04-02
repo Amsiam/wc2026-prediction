@@ -4,13 +4,14 @@ import type { MatchId, Team } from '../../data/teams'
 
 interface Props {
   matchId: MatchId
+  teams?: Team[]  // if provided, use this instead of computing from matchId
   onSelect: (team: Team) => void
   onClose: () => void
 }
 
-export function TeamPicker({ matchId, onSelect, onClose }: Props) {
+export function TeamPicker({ matchId, teams, onSelect, onClose }: Props) {
   const state = bracketStore.getState()
-  const eligible = getEligibleTeams(matchId, state)
+  const eligible = teams ?? getEligibleTeams(matchId, state)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={onClose}>

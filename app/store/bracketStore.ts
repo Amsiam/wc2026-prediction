@@ -8,7 +8,9 @@ export interface BracketActions {
   setGroupFirst: (group: GroupKey, teamId: TeamId | null) => void
   setGroupSecond: (group: GroupKey, teamId: TeamId | null) => void
   setGroupThird: (group: GroupKey, teamId: TeamId | null) => void
+  setGroupThirdSlot: (group: GroupKey, matchId: MatchId | null) => void
   setThirdRank: (group: GroupKey, rank: number | null) => void
+  clearTeam: (teamId: TeamId) => void
   setMatchWinner: (matchId: MatchId, teamId: TeamId | null) => void
   backfillPath: (matchId: MatchId, teamId: TeamId, side: 'home' | 'away') => void
   clearDownstream: (matchId: MatchId) => void
@@ -96,6 +98,11 @@ export function createBracketStore() {
         groups: { ...s.groups, [group]: { ...s.groups[group], third: teamId } },
       })),
 
+    setGroupThirdSlot: (group, matchId) =>
+      set(s => ({
+        groups: { ...s.groups, [group]: { ...s.groups[group], thirdSlot: matchId } },
+      })),
+
     setThirdRank: (group, rank) =>
       set(s => ({
         groups: { ...s.groups, [group]: { ...s.groups[group], thirdRank: rank } },
@@ -117,6 +124,30 @@ export function createBracketStore() {
         return { matches }
       })
     },
+
+    clearTeam: (teamId) =>
+      set(s => {
+        const groups = { ...s.groups } as typeof s.groups
+        for (const g of Object.keys(groups) as GroupKey[]) {
+          const gp = groups[g]
+          if (gp.first === teamId || gp.second === teamId || gp.third === teamId) {
+            groups[g] = {
+              ...gp,
+              first: gp.first === teamId ? null : gp.first,
+              second: gp.second === teamId ? null : gp.second,
+              third: gp.third === teamId ? null : gp.third,
+              thirdSlot: gp.third === teamId ? null : gp.thirdSlot,
+            }
+          }
+        }
+        const matches = { ...s.matches }
+        for (const id of Object.keys(matches) as MatchId[]) {
+          if (matches[id].winner === teamId) {
+            matches[id] = { winner: null }
+          }
+        }
+        return { groups, matches }
+      }),
 
     clearDownstream: (matchId) => {
       const downstream = getDownstreamMatches(matchId)

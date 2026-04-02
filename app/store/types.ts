@@ -7,6 +7,7 @@ export interface GroupPick {
   second: TeamId | null
   third: TeamId | null    // best 3rd-place qualifier from this group
   thirdRank: number | null // 1=best qualifier, 12=worst; null=unset
+  thirdSlot: MatchId | null // which R32 match this group's 3rd-place team is assigned to
 }
 
 export interface MatchPick {

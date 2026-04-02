@@ -4,7 +4,7 @@ import type { GroupKey, MatchId } from '../data/teams'
 
 function emptyGroupPicks(): Record<GroupKey, GroupPick> {
   return Object.fromEntries(
-    GROUPS.map(g => [g, { first: null, second: null, third: null, thirdRank: null }])
+    GROUPS.map(g => [g, { first: null, second: null, third: null, thirdRank: null, thirdSlot: null }])
   ) as Record<GroupKey, GroupPick>
 }
 
