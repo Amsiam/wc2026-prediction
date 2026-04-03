@@ -5,7 +5,7 @@ import { MatchSlot } from './MatchSlot'
 import { R32MatchSlot } from './R32MatchSlot'
 import { TeamPicker } from './TeamPicker'
 import { ThirdPlaceSlot } from './ThirdPlaceSlot'
-import { getTeamById, BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
+import { getTeamById, getGroup, BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
 import { getSlotPool, getR32SlotPool, inferTeamR32Entry, getR32Ancestors } from '../../lib/bracket'
 import type { MatchId, Team, GroupKey, SeedSource } from '../../data/teams'
 
@@ -40,6 +40,33 @@ const RIGHT_ROUNDS: MatchId[][] = [
 ]
 const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarterfinals', 'Semifinals']
 
+const GROUP_COLORS: Record<string, string> = {
+  A: '#10b981', B: '#ef4444', C: '#f59e0b', D: '#3b82f6',
+  E: '#8b5cf6', F: '#ec4899', G: '#06b6d4', H: '#84cc16',
+  I: '#f97316', J: '#a855f7', K: '#14b8a6', L: '#f43f5e',
+}
+
+function GroupsColumn({ groups }: { groups: GroupKey[] }) {
+  return (
+    <div className="flex flex-col justify-around self-stretch gap-1 py-6">
+      {groups.map(g => {
+        const teams = getGroup(g)
+        const color = GROUP_COLORS[g]
+        return (
+          <div key={g} className="group-card" style={{ borderColor: color }}>
+            <div className="group-card-label" style={{ color }}>GROUP {g}</div>
+            <div className="group-card-teams">
+              {teams.map(team => (
+                <span key={team.id} className={`fi fi-${team.flagCode} group-card-flag`} />
+              ))}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 function RoundColumn({ matchIds, label, onSlotClick, onWinnerPick }: {
   matchIds: MatchId[]
   label: string
@@ -49,7 +76,7 @@ function RoundColumn({ matchIds, label, onSlotClick, onWinnerPick }: {
   const isR32 = matchIds[0]?.startsWith('r32')
   return (
     <div className="flex flex-col justify-around gap-3 min-w-45">
-      <div className="text-xs text-gray-500 text-center font-medium">{label}</div>
+      <div className="round-col-label">{label}</div>
       {matchIds.map(id => (
         isR32
           ? <R32MatchSlot key={id} matchId={id} onSlotClick={onSlotClick} onWinnerPick={onWinnerPick} />
@@ -214,33 +241,37 @@ export function BracketView() {
 
   return (
     <div className="overflow-x-auto pb-8">
-      <div className="flex items-start gap-2 min-w-max mx-auto px-4 pt-4">
-        {LEFT_ROUNDS.map((ids, i) => (
-          <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
-        ))}
+      <div id="bracket-capture" className="bracket-area min-w-max">
+        <div className="flex items-start gap-2 px-2 pt-2">
+          <GroupsColumn groups={['A','B','C','D','E','F'] as GroupKey[]} />
+          {LEFT_ROUNDS.map((ids, i) => (
+            <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
+          ))}
 
-        <div className="flex flex-col items-center gap-2 px-4 pt-6">
-          <div className="text-xs text-gray-500 font-medium text-center">Final</div>
-          <MatchSlot matchId="final" onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
-          {champion && (
-            <div className="mt-2 text-center">
-              <div className="text-xs text-yellow-400 mb-1">Champion</div>
-              <div className="flex items-center gap-2 justify-center">
-                <span className={`fi fi-${champion.flagCode}`} />
-                <span className="text-sm font-bold">{champion.name}</span>
+          <div className="flex flex-col items-center gap-2 px-4 pt-0">
+            <div className="final-label">Final</div>
+            <MatchSlot matchId="final" onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
+            {champion ? (
+              <div className="champion-box">
+                <div className="champion-label">⚽ World Champion</div>
+                <div className="champion-name">
+                  <span className={`fi fi-${champion.flagCode}`} />
+                  {champion.name}
+                </div>
               </div>
-            </div>
-          )}
+            ) : null}
+          </div>
+
+          {[...RIGHT_ROUNDS].reverse().map((ids, i) => (
+            <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[3 - i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
+          ))}
+          <GroupsColumn groups={['G','H','I','J','K','L'] as GroupKey[]} />
         </div>
 
-        {[...RIGHT_ROUNDS].reverse().map((ids, i) => (
-          <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[3 - i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
-        ))}
-      </div>
-
-      <div className="mt-8 flex justify-center gap-4 items-center">
-        <span className="text-xs text-gray-400">3rd Place Play-off</span>
-        <ThirdPlaceSlot onWinnerPick={handleWinnerPick} />
+        <div className="mt-8 flex justify-center gap-4 items-center">
+          <span className="third-place-label">3rd Place Play-off</span>
+          <ThirdPlaceSlot onWinnerPick={handleWinnerPick} />
+        </div>
       </div>
 
       {picking.phase === 'slot' && (

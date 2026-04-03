@@ -34,29 +34,24 @@ function SlotRow({ teamId, label, isWinner, dimmed, canClick, onClick, onClear }
   onClear?: () => void
 }) {
   const team = teamId ? getTeamById(teamId) : null
+  const rowState = isWinner ? 'row-winner' : dimmed ? 'row-loser' : 'row-idle'
   return (
     <div
       onClick={canClick ? onClick : undefined}
-      className={`flex items-center gap-2 px-2 py-1.5 rounded text-sm transition-colors ${
-        isWinner ? 'bg-green-800 text-white hover:bg-green-700 cursor-pointer'
-        : dimmed ? 'text-gray-400 hover:bg-gray-700 cursor-pointer'
-        : canClick ? 'text-gray-300 hover:bg-gray-700 cursor-pointer'
-        : 'text-gray-500 cursor-default'
-      }`}
+      className={`match-row ${rowState} ${canClick ? 'row-clickable' : 'row-inert'}`}
     >
       {team ? (
         <>
-          <span className={`fi fi-${team.flagCode} shrink-0`} />
-          <span className="truncate">{team.name}</span>
-          {isWinner && <span className="text-xs text-green-400">✓</span>}
+          <span className={`fi fi-${team.flagCode} match-flag`} />
+          <span className={`match-name ${isWinner ? 'name-win' : dimmed ? 'name-lose' : ''}`}>{team.name}</span>
           <button
-            className="ml-auto text-gray-600 hover:text-red-400 text-base leading-none px-0.5"
+            className="match-clear"
             onClick={e => { e.stopPropagation(); onClear?.() }}
             title="Remove"
           >×</button>
         </>
       ) : (
-        <span className="italic text-gray-500 text-xs truncate">{label}</span>
+        <span className="match-seed">{label}</span>
       )}
     </div>
   )
@@ -75,7 +70,7 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
   const hasWinner = winner !== null
 
   return (
-    <div className={`flex flex-col w-44 rounded border ${hasWinner ? 'border-green-700' : 'border-gray-700'} bg-gray-900`}>
+    <div className={`match-card flex flex-col ${hasWinner ? 'winner-set' : ''}`}>
       <SlotRow
         teamId={homeId}
         label={homeLabel}
@@ -87,7 +82,7 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
           : () => onSlotClick(matchId, 'home')}
         onClear={homeId !== null ? () => bracketStore.getState().clearTeam(homeId) : undefined}
       />
-      <div className="border-t border-gray-800 mx-2" />
+      <div className="match-divider" />
       <SlotRow
         teamId={awayId}
         label={awayLabel}
