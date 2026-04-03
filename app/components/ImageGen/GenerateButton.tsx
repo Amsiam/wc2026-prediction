@@ -29,13 +29,18 @@ export function GenerateButton() {
     <button
       onClick={handleGenerate}
       disabled={loading}
-      className={`text-sm px-3 py-1.5 rounded font-medium transition-colors ${
+      className={`text-xs sm:text-sm px-2 sm:px-3 py-1.5 rounded font-medium transition-colors whitespace-nowrap ${
         !loading
           ? 'bg-green-600 hover:bg-green-500 text-white'
           : 'bg-gray-700 text-gray-500 cursor-not-allowed'
       }`}
     >
-      {loading ? 'Generating…' : 'Save bracket image'}
+      {loading ? 'Generating…' : (
+        <>
+          <span className="hidden sm:inline">Save bracket image</span>
+          <span className="sm:hidden">Save</span>
+        </>
+      )}
     </button>
   )
 }

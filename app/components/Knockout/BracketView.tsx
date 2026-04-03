@@ -27,13 +27,16 @@ function seedLabel(seed: SeedSource): string {
 }
 
 const LEFT_ROUNDS: MatchId[][] = [
-  ['r32_m1','r32_m2','r32_m3','r32_m5','r32_m9','r32_m10','r32_m11','r32_m12'],
+  // Ordered so each pair feeds the same R16 match
+  // r16_m1←[r32_m2,r32_m5], r16_m2←[r32_m1,r32_m3], r16_m5←[r32_m11,r32_m12], r16_m6←[r32_m9,r32_m10]
+  ['r32_m2','r32_m5','r32_m1','r32_m3','r32_m11','r32_m12','r32_m9','r32_m10'],
   ['r16_m1','r16_m2','r16_m5','r16_m6'],
   ['qf_m1','qf_m2'],
   ['sf_m1'],
 ]
 const RIGHT_ROUNDS: MatchId[][] = [
-  ['r32_m4','r32_m6','r32_m7','r32_m8','r32_m13','r32_m14','r32_m15','r32_m16'],
+  // r16_m3←[r32_m4,r32_m6], r16_m4←[r32_m7,r32_m8], r16_m7←[r32_m14,r32_m16], r16_m8←[r32_m13,r32_m15]
+  ['r32_m4','r32_m6','r32_m7','r32_m8','r32_m14','r32_m16','r32_m13','r32_m15'],
   ['r16_m3','r16_m4','r16_m7','r16_m8'],
   ['qf_m3','qf_m4'],
   ['sf_m2'],
@@ -57,7 +60,7 @@ function GroupsColumn({ groups }: { groups: GroupKey[] }) {
             <div className="group-card-label" style={{ color }}>GROUP {g}</div>
             <div className="group-card-teams">
               {teams.map(team => (
-                <span key={team.id} className={`fi fi-${team.flagCode} group-card-flag`} />
+                <span title={team.name} key={team.id} className={`fi fi-${team.flagCode} group-card-flag`} />
               ))}
             </div>
           </div>
@@ -75,13 +78,15 @@ function RoundColumn({ matchIds, label, onSlotClick, onWinnerPick }: {
 }) {
   const isR32 = matchIds[0]?.startsWith('r32')
   return (
-    <div className="flex flex-col justify-around gap-3 min-w-45">
+    <div className="flex flex-col self-stretch min-w-45">
       <div className="round-col-label">{label}</div>
-      {matchIds.map(id => (
-        isR32
-          ? <R32MatchSlot key={id} matchId={id} onSlotClick={onSlotClick} onWinnerPick={onWinnerPick} />
-          : <MatchSlot key={id} matchId={id} onSlotClick={onSlotClick} onWinnerPick={onWinnerPick} />
-      ))}
+      <div className="flex flex-col items-center justify-around flex-1 gap-2">
+        {matchIds.map(id => (
+          isR32
+            ? <R32MatchSlot key={id} matchId={id} onSlotClick={onSlotClick} onWinnerPick={onWinnerPick} />
+            : <MatchSlot key={id} matchId={id} onSlotClick={onSlotClick} onWinnerPick={onWinnerPick} />
+        ))}
+      </div>
     </div>
   )
 }
@@ -240,79 +245,93 @@ export function BracketView() {
   }, [picking])
 
   return (
-    <div className="overflow-x-auto pb-8">
-      <div id="bracket-capture" className="bracket-area min-w-max">
-        <div className="flex items-start gap-2 px-2 pt-2">
-          <GroupsColumn groups={['A','B','C','D','E','F'] as GroupKey[]} />
-          {LEFT_ROUNDS.map((ids, i) => (
-            <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
-          ))}
+    <div>
+      <p className="sm:hidden text-xs text-center text-gray-500 mb-2">← Scroll to see full bracket →</p>
+      <div className="overflow-x-auto pb-4 -mx-4 px-4">
+        <div id="bracket-capture" className="bracket-area min-w-max">
+          <div className="flex items-start gap-2 px-2 pt-2" style={{ minHeight: 620 }}>
+            <GroupsColumn groups={['A','B','C','D','E','F'] as GroupKey[]} />
+            {LEFT_ROUNDS.map((ids, i) => (
+              <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
+            ))}
 
-          <div className="flex flex-col items-center gap-2 px-4 pt-0">
-            <div className="final-label">Final</div>
-            <MatchSlot matchId="final" onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
-            {champion ? (
-              <div className="champion-box">
-                <div className="champion-label">⚽ World Champion</div>
-                <div className="champion-name">
-                  <span className={`fi fi-${champion.flagCode}`} />
-                  {champion.name}
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          {[...RIGHT_ROUNDS].reverse().map((ids, i) => (
-            <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[3 - i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
-          ))}
-          <GroupsColumn groups={['G','H','I','J','K','L'] as GroupKey[]} />
-        </div>
-
-        <div className="mt-8 flex justify-center gap-4 items-center">
-          <span className="third-place-label">3rd Place Play-off</span>
-          <ThirdPlaceSlot onWinnerPick={handleWinnerPick} />
-        </div>
-      </div>
-
-      {picking.phase === 'slot' && (
-        <TeamPicker
-          matchId={picking.matchId}
-          teams={slotPool}
-          onSelect={handleTeamPick}
-          onClose={() => setPicking({ phase: 'idle' })}
-        />
-      )}
-
-      {picking.phase === 'disambig' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setPicking({ phase: 'idle' })}>
-          <div
-            className="bg-gray-900 border border-gray-700 rounded-xl p-4 w-80 shadow-2xl"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-center mb-1">
-              <h2 className="font-semibold text-sm">How did {picking.team.name} qualify?</h2>
-              <button onClick={() => setPicking({ phase: 'idle' })} className="text-gray-400 hover:text-white text-lg leading-none">×</button>
-            </div>
-            <p className="text-xs text-gray-500 mb-3">Group {picking.team.group} has multiple possible paths</p>
-            <ul className="space-y-1">
-              {picking.options.map((opt, i) => (
-                <li key={i}>
-                  <button
-                    className="w-full flex items-center justify-between px-3 py-2 rounded hover:bg-gray-700 text-left transition-colors text-sm"
-                    onClick={() => handleDisambig(opt.r32Id)}
-                  >
-                    <div className="flex flex-col">
-                      <span className="text-gray-300">{opt.positionLabel}</span>
-                      <span className="text-xs text-gray-500">vs {opt.opponentLabel}</span>
+            <div className="flex flex-col self-stretch items-center px-4">
+              <div className="final-label" style={{ height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>Final</div>
+              <div className="flex flex-col items-center justify-center flex-1 gap-3">
+                {champion ? (
+                  <div className="champion-box bg-green-400">
+                    <div className="champion-label">⚽ World Champion</div>
+                    <div className="champion-name">
+                      <span className={`fi fi-${champion.flagCode}`} />
+                      {champion.name}
                     </div>
-                    <span className="text-xs text-gray-600">{opt.r32Id.replace('r32_m', 'R32-')}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+                  </div>
+                ) : null}
+                <MatchSlot matchId="final" onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
+                {champion ? (
+                  <div className="champion-box">
+                    <div className="champion-label">⚽ World Champion</div>
+                    <div className="champion-name">
+                      <span className={`fi fi-${champion.flagCode}`} />
+                      {champion.name}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+
+            {[...RIGHT_ROUNDS].reverse().map((ids, i) => (
+              <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[3 - i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
+            ))}
+            <GroupsColumn groups={['G','H','I','J','K','L'] as GroupKey[]} />
+          </div>
+
+          <div className="mt-3 flex justify-center gap-4 items-center">
+            <span className="third-place-label">3rd Place Play-off</span>
+            <ThirdPlaceSlot onWinnerPick={handleWinnerPick} />
           </div>
         </div>
-      )}
+
+        {picking.phase === 'slot' && (
+          <TeamPicker
+            matchId={picking.matchId}
+            teams={slotPool}
+            onSelect={handleTeamPick}
+            onClose={() => setPicking({ phase: 'idle' })}
+          />
+        )}
+
+        {picking.phase === 'disambig' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setPicking({ phase: 'idle' })}>
+            <div
+              className="bg-gray-900 border border-gray-700 rounded-xl p-4 w-80 shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex justify-between items-center mb-1">
+                <h2 className="font-semibold text-sm">How did {picking.team.name} qualify?</h2>
+                <button onClick={() => setPicking({ phase: 'idle' })} className="text-gray-400 hover:text-white text-lg leading-none">×</button>
+              </div>
+              <p className="text-xs text-gray-500 mb-3">Group {picking.team.group} has multiple possible paths</p>
+              <ul className="space-y-1">
+                {picking.options.map((opt, i) => (
+                  <li key={i}>
+                    <button
+                      className="w-full flex items-center justify-between px-3 py-2 rounded hover:bg-gray-700 text-left transition-colors text-sm"
+                      onClick={() => handleDisambig(opt.r32Id)}
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-gray-300">{opt.positionLabel}</span>
+                        <span className="text-xs text-gray-500">vs {opt.opponentLabel}</span>
+                      </div>
+                      <span className="text-xs text-gray-600">{opt.r32Id.replace('r32_m', 'R32-')}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

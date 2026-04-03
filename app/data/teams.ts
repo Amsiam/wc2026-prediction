@@ -11,12 +11,12 @@ export const TEAMS: Team[] = [
   { id: 'MEX',  name: 'Mexico',              flagCode: 'mx',     group: 'A' },
   { id: 'RSA',  name: 'South Africa',        flagCode: 'za',     group: 'A' },
   { id: 'KOR',  name: 'South Korea',         flagCode: 'kr',     group: 'A' },
-  { id: 'UPOD', name: 'UEFA PO-D',           flagCode: 'un',     group: 'A', placeholder: true },
+  { id: 'CZE',  name: 'Czech Republic',       flagCode: 'cz',     group: 'A' },
   // Group B
   { id: 'CAN',  name: 'Canada',              flagCode: 'ca',     group: 'B' },
   { id: 'SUI',  name: 'Switzerland',         flagCode: 'ch',     group: 'B' },
   { id: 'QAT',  name: 'Qatar',               flagCode: 'qa',     group: 'B' },
-  { id: 'UPOA', name: 'UEFA PO-A',           flagCode: 'un',     group: 'B', placeholder: true },
+  { id: 'BIH',  name: 'Bosnia & Herzegovina', flagCode: 'ba',     group: 'B' },
   // Group C
   { id: 'BRA',  name: 'Brazil',              flagCode: 'br',     group: 'C' },
   { id: 'SCO',  name: 'Scotland',            flagCode: 'gb-sct', group: 'C' },
@@ -26,7 +26,7 @@ export const TEAMS: Team[] = [
   { id: 'USA',  name: 'United States',       flagCode: 'us',     group: 'D' },
   { id: 'PAR',  name: 'Paraguay',            flagCode: 'py',     group: 'D' },
   { id: 'AUS',  name: 'Australia',           flagCode: 'au',     group: 'D' },
-  { id: 'UPOC', name: 'UEFA PO-C',           flagCode: 'un',     group: 'D', placeholder: true },
+  { id: 'TUR',  name: 'Turkey',               flagCode: 'tr',     group: 'D' },
   // Group E
   { id: 'GER',  name: 'Germany',             flagCode: 'de',     group: 'E' },
   { id: 'CUW',  name: 'Curaçao',             flagCode: 'cw',     group: 'E' },
@@ -36,7 +36,7 @@ export const TEAMS: Team[] = [
   { id: 'NED',  name: 'Netherlands',         flagCode: 'nl',     group: 'F' },
   { id: 'JPN',  name: 'Japan',               flagCode: 'jp',     group: 'F' },
   { id: 'TUN',  name: 'Tunisia',             flagCode: 'tn',     group: 'F' },
-  { id: 'UPOB', name: 'UEFA PO-B',           flagCode: 'un',     group: 'F', placeholder: true },
+  { id: 'SWE',  name: 'Sweden',               flagCode: 'se',     group: 'F' },
   // Group G
   { id: 'BEL',  name: 'Belgium',             flagCode: 'be',     group: 'G' },
   { id: 'EGY',  name: 'Egypt',               flagCode: 'eg',     group: 'G' },
@@ -51,7 +51,7 @@ export const TEAMS: Team[] = [
   { id: 'FRA',  name: 'France',              flagCode: 'fr',     group: 'I' },
   { id: 'SEN',  name: 'Senegal',             flagCode: 'sn',     group: 'I' },
   { id: 'NOR',  name: 'Norway',              flagCode: 'no',     group: 'I' },
-  { id: 'IPO2', name: 'Inter-conf PO2',       flagCode: 'un',     group: 'I', placeholder: true },
+  { id: 'IRQ',  name: 'Iraq',                 flagCode: 'iq',     group: 'I' },
   // Group J
   { id: 'ARG',  name: 'Argentina',           flagCode: 'ar',     group: 'J' },
   { id: 'ALG',  name: 'Algeria',             flagCode: 'dz',     group: 'J' },
@@ -61,7 +61,7 @@ export const TEAMS: Team[] = [
   { id: 'POR',  name: 'Portugal',            flagCode: 'pt',     group: 'K' },
   { id: 'COL',  name: 'Colombia',            flagCode: 'co',     group: 'K' },
   { id: 'UZB',  name: 'Uzbekistan',          flagCode: 'uz',     group: 'K' },
-  { id: 'IPO1', name: 'Inter-conf PO1',       flagCode: 'un',     group: 'K', placeholder: true },
+  { id: 'COD',  name: 'DR Congo',              flagCode: 'cd',     group: 'K' },
   // Group L
   { id: 'ENG',  name: 'England',             flagCode: 'gb-eng', group: 'L' },
   { id: 'CRO',  name: 'Croatia',             flagCode: 'hr',     group: 'L' },

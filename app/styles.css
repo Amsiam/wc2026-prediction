@@ -8,8 +8,8 @@
 }
 
 :root {
-  --sea-ink: #173a40;
-  --sea-ink-soft: #416166;
+  --sea-ink: #1e5060;
+  --sea-ink-soft: #4a6e74;
   --lagoon: #4fb8b2;
   --lagoon-deep: #328f97;
   --palm: #2f6a4a;
@@ -371,8 +371,12 @@ a {
   text-transform: uppercase;
   color: #a06c10;
   text-align: center;
-  padding-bottom: 10px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0.85;
+  flex-shrink: 0;
 }
 
 .final-label {

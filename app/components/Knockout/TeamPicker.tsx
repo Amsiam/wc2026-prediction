@@ -50,7 +50,7 @@ export function TeamPicker({ matchId, teams, onSelect, onClose }: Props) {
                     onClick={() => onSelect(team)}
                   >
                     <span className={`fi fi-${team.flagCode} flex-shrink-0`} />
-                    <span>{team.name}</span>
+                    <span className='text-white'>{team.name}</span>
                     <span className="ml-auto text-xs text-gray-500">Group {team.group}</span>
                   </button>
                 </li>

@@ -7,6 +7,7 @@ import { GroupGrid } from './GroupStage/GroupGrid'
 import { BracketView } from './Knockout/BracketView'
 import { GenerateButton } from './ImageGen/GenerateButton'
 import { getShareableUrl } from '../hooks/usePersistence'
+import { ShareMenu } from './ShareMenu'
 import { useStore } from 'zustand'
 
 type Tab = 'groups' | 'knockout'
@@ -17,13 +18,10 @@ function usePlacedCount(): number {
 }
 
 export function AppShell() {
-  const [tab, setTab] = useState<Tab>('groups')
+  const [tab, setTab] = useState<Tab>(() =>
+    new URLSearchParams(window.location.search).has('p') ? 'knockout' : 'groups'
+  )
   const placedCount = usePlacedCount()
-
-  function copyLink() {
-    navigator.clipboard.writeText(getShareableUrl())
-      .then(() => alert('Link copied!'))
-  }
 
   function handleClear() {
     if (!confirm('Reset all predictions and scores?')) return
@@ -33,24 +31,19 @@ export function AppShell() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-bold tracking-tight">WC 2026 Predictor</span>
-          <span className="text-sm text-gray-400">{placedCount} / 32 teams placed</span>
+      <header className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-white">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-base sm:text-xl font-bold tracking-tight whitespace-nowrap text-white">WC 2026</span>
+          <span className="text-xs text-gray-400 whitespace-nowrap">{placedCount}/32 placed</span>
         </div>
-        <div className="flex gap-2">
-          <a href="/schedule" className="text-sm px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">
+        <div className="flex gap-1.5 justify-center flex-wrap">
+          <a href="/schedule" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 whitespace-nowrap">
             Schedule
           </a>
-          <button
-            onClick={copyLink}
-            className="text-sm px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600"
-          >
-            Copy link
-          </button>
+          <ShareMenu getUrl={getShareableUrl} />
           <button
             onClick={handleClear}
-            className="text-sm px-3 py-1.5 rounded bg-red-900 hover:bg-red-800 text-red-300"
+            className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 rounded bg-red-900 hover:bg-red-800 text-red-300 whitespace-nowrap"
           >
             Clear
           </button>
