@@ -4,6 +4,7 @@ import { groupScoreStore } from '../../store/groupScoreStore'
 import { bracketStore } from '../../store/bracketStore'
 import { getGroupMatches, computeStandings, isGroupComplete } from '../../lib/standings'
 import { getGroup, TEAMS } from '../../data/teams'
+import { isScoreLocked } from '../../data/confirmed'
 import type { GroupKey } from '../../data/teams'
 
 interface Props {
@@ -133,6 +134,7 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
           <div className="flex flex-col gap-2">
             {matches.map(m => {
               const score = scores[m.matchNumber] ?? { home: null, away: null }
+              const locked = isScoreLocked(m.matchNumber)
               return (
                 <div key={m.matchNumber} className="flex items-center gap-2 text-sm">
                   <span className="text-gray-500 w-8 text-right shrink-0">M{m.matchNumber}</span>
@@ -143,17 +145,19 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
                     max={30}
                     value={score.home ?? ''}
                     onChange={e => handleScoreChange(m.matchNumber, 'home', e.target.value)}
-                    className="w-12 text-center bg-gray-800 border border-gray-700 rounded py-1 text-white"
+                    readOnly={locked}
+                    className={`w-12 text-center border rounded py-1 text-white ${locked ? 'bg-gray-700 border-gray-600 opacity-70 cursor-not-allowed' : 'bg-gray-800 border-gray-700'}`}
                     placeholder="—"
                   />
-                  <span className="text-gray-500">–</span>
+                  <span className="text-gray-500">{locked ? '🔒' : '–'}</span>
                   <input
                     type="number"
                     min={0}
                     max={30}
                     value={score.away ?? ''}
                     onChange={e => handleScoreChange(m.matchNumber, 'away', e.target.value)}
-                    className="w-12 text-center bg-gray-800 border border-gray-700 rounded py-1 text-white"
+                    readOnly={locked}
+                    className={`w-12 text-center border rounded py-1 text-white ${locked ? 'bg-gray-700 border-gray-600 opacity-70 cursor-not-allowed' : 'bg-gray-800 border-gray-700'}`}
                     placeholder="—"
                   />
                   <span className="flex-1 truncate text-gray-200">{displayName(m.awayTeam)}</span>

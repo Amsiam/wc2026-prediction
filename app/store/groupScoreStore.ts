@@ -1,4 +1,5 @@
 import { createStore } from 'zustand/vanilla'
+import { CONFIRMED_SCORES, isScoreLocked } from '../data/confirmed'
 
 export interface MatchScore {
   home: number | null
@@ -41,33 +42,46 @@ function loadFromStorage(): Partial<GroupScoreState> {
   }
 }
 
-export const groupScoreStore = createStore<GroupScoreState & GroupScoreActions>((set) => ({
-  scores: {},
-  overrides: {},
-  activeGroupModal: null,
-  ...loadFromStorage(),
+// Merge confirmed scores on top of persisted scores
+function mergeConfirmed(scores: Record<number, MatchScore>): Record<number, MatchScore> {
+  return { ...scores, ...CONFIRMED_SCORES }
+}
 
-  setScore: (matchNumber, home, away) =>
-    set(s => ({ scores: { ...s.scores, [matchNumber]: { home, away } } })),
+export const groupScoreStore = createStore<GroupScoreState & GroupScoreActions>((set) => {
+  const persisted = loadFromStorage()
+  return {
+    scores: mergeConfirmed(persisted.scores ?? {}),
+    overrides: persisted.overrides ?? {},
+    activeGroupModal: null,
 
-  clearGroupScores: (matchNumbers) =>
-    set(s => {
-      const scores = { ...s.scores }
-      for (const n of matchNumbers) delete scores[n]
-      return { scores }
-    }),
+    setScore: (matchNumber, home, away) => {
+      if (isScoreLocked(matchNumber)) return
+      set(s => ({ scores: { ...s.scores, [matchNumber]: { home, away } } }))
+    },
 
-  setOverride: (teamId, override) =>
-    set(s => {
-      if (override === null) {
-        const { [teamId]: _, ...rest } = s.overrides
-        return { overrides: rest }
-      }
-      return { overrides: { ...s.overrides, [teamId]: override } }
-    }),
+    clearGroupScores: (matchNumbers) =>
+      set(s => {
+        const scores = { ...s.scores }
+        for (const n of matchNumbers) delete scores[n]
+        // Re-apply confirmed scores so they can't be wiped
+        for (const n of matchNumbers) {
+          if (CONFIRMED_SCORES[n]) scores[n] = CONFIRMED_SCORES[n]
+        }
+        return { scores }
+      }),
 
-  setActiveGroupModal: (group) => set({ activeGroupModal: group }),
-}))
+    setOverride: (teamId, override) =>
+      set(s => {
+        if (override === null) {
+          const { [teamId]: _, ...rest } = s.overrides
+          return { overrides: rest }
+        }
+        return { overrides: { ...s.overrides, [teamId]: override } }
+      }),
+
+    setActiveGroupModal: (group) => set({ activeGroupModal: group }),
+  }
+})
 
 // Persist to localStorage on every change (client-side only)
 if (typeof window !== 'undefined') {

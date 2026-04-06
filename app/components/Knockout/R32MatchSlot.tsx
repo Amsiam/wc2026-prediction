@@ -1,6 +1,7 @@
 import { useStore } from 'zustand'
 import { bracketStore } from '../../store/bracketStore'
 import { getTeamById, R32_FIXTURES, getGroup } from '../../data/teams'
+import { CONFIRMED_GROUPS, CONFIRMED_MATCHES } from '../../data/confirmed'
 import type { MatchId, SeedSource, GroupKey } from '../../data/teams'
 import type { GroupPick } from '../../store/types'
 
@@ -28,31 +29,32 @@ function seedLabel(seed: SeedSource): string {
   return `3rd (${seed.groups!.join('/')})`
 }
 
-function TeamRow({ teamId, label, isWinner, dimmed, canClick, onClick, onClear }: {
+function TeamRow({ teamId, label, isWinner, dimmed, canClick, locked, onClick, onClear }: {
   teamId: string | null
   label: string
   isWinner: boolean
   dimmed: boolean
   canClick: boolean
+  locked?: boolean
   onClick: () => void
   onClear?: () => void
 }) {
   const team = teamId ? getTeamById(teamId) : null
   const rowState = isWinner ? 'row-winner' : dimmed ? 'row-loser' : 'row-idle'
+  const clickable = canClick && !locked
   return (
     <div
-      onClick={canClick ? onClick : undefined}
-      className={`match-row ${rowState} ${canClick ? 'row-clickable' : 'row-inert'}`}
+      onClick={clickable ? onClick : undefined}
+      className={`match-row ${rowState} ${clickable ? 'row-clickable' : 'row-inert'}`}
     >
       {team ? (
         <>
           <span className={`fi fi-${team.flagCode} match-flag`} />
           <span className={`match-name ${isWinner ? 'name-win' : dimmed ? 'name-lose' : ''}`}>{team.name}</span>
-          <button
-            className="match-clear"
-            onClick={e => { e.stopPropagation(); onClear?.() }}
-            title="Remove"
-          >×</button>
+          {locked
+            ? <span className="match-clear" style={{ opacity: 1, color: '#4a7a9b', cursor: 'default' }}>🔒</span>
+            : <button className="match-clear" onClick={e => { e.stopPropagation(); onClear?.() }} title="Remove">×</button>
+          }
         </>
       ) : (
         <span className="match-seed">{label}</span>
@@ -73,6 +75,17 @@ export function R32MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
   const winner = match?.winner ?? null
   const hasWinner = winner !== null
   const bothKnown = homeId !== null && awayId !== null
+  const winnerLocked = CONFIRMED_MATCHES[matchId] !== undefined
+  const homeLocked = fixture.home.source === 'winner'
+    ? CONFIRMED_GROUPS[fixture.home.group!]?.first !== undefined
+    : fixture.home.source === 'runner'
+    ? CONFIRMED_GROUPS[fixture.home.group!]?.second !== undefined
+    : false
+  const awayLocked = fixture.away.source === 'winner'
+    ? CONFIRMED_GROUPS[fixture.away.group!]?.first !== undefined
+    : fixture.away.source === 'runner'
+    ? CONFIRMED_GROUPS[fixture.away.group!]?.second !== undefined
+    : false
 
   return (
     <div className={`match-card flex flex-col ${hasWinner ? 'winner-set' : ''}`}>
@@ -82,6 +95,7 @@ export function R32MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
         isWinner={hasWinner && winner === homeId}
         dimmed={hasWinner && winner !== homeId}
         canClick={homeId !== null ? bothKnown : true}
+        locked={homeId !== null ? (homeLocked || winnerLocked) : homeLocked}
         onClick={homeId !== null && bothKnown
           ? () => onWinnerPick(matchId, homeId)
           : () => onSlotClick(matchId, 'home')}
@@ -94,6 +108,7 @@ export function R32MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
         isWinner={hasWinner && winner === awayId}
         dimmed={hasWinner && winner !== awayId}
         canClick={awayId !== null ? bothKnown : true}
+        locked={awayId !== null ? (awayLocked || winnerLocked) : awayLocked}
         onClick={awayId !== null && bothKnown
           ? () => onWinnerPick(matchId, awayId)
           : () => onSlotClick(matchId, 'away')}

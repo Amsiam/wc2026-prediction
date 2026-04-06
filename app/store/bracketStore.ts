@@ -1,6 +1,7 @@
 import { createStore } from 'zustand/vanilla'
 import { EMPTY_STATE } from '../lib/encoding'
 import { BRACKET_TREE } from '../data/teams'
+import { CONFIRMED_GROUPS, CONFIRMED_MATCHES, isGroupFieldLocked, isMatchLocked } from '../data/confirmed'
 import type { BracketState, TeamId } from './types'
 import type { GroupKey, MatchId } from '../data/teams'
 
@@ -76,7 +77,8 @@ export function createBracketStore() {
   return createStore<BracketStore>((set) => ({
     ...makeEmptyState(),
 
-    setGroupFirst: (group, teamId) =>
+    setGroupFirst: (group, teamId) => {
+      if (isGroupFieldLocked(group, 'first')) return
       set(s => ({
         groups: {
           ...s.groups,
@@ -86,17 +88,22 @@ export function createBracketStore() {
             second: teamId === null ? null : s.groups[group].second,
           },
         },
-      })),
+      }))
+    },
 
-    setGroupSecond: (group, teamId) =>
+    setGroupSecond: (group, teamId) => {
+      if (isGroupFieldLocked(group, 'second')) return
       set(s => ({
         groups: { ...s.groups, [group]: { ...s.groups[group], second: teamId } },
-      })),
+      }))
+    },
 
-    setGroupThird: (group, teamId) =>
+    setGroupThird: (group, teamId) => {
+      if (isGroupFieldLocked(group, 'third')) return
       set(s => ({
         groups: { ...s.groups, [group]: { ...s.groups[group], third: teamId } },
-      })),
+      }))
+    },
 
     setGroupThirdSlot: (group, matchId) =>
       set(s => ({
@@ -108,10 +115,12 @@ export function createBracketStore() {
         groups: { ...s.groups, [group]: { ...s.groups[group], thirdRank: rank } },
       })),
 
-    setMatchWinner: (matchId, teamId) =>
+    setMatchWinner: (matchId, teamId) => {
+      if (isMatchLocked(matchId)) return
       set(s => ({
         matches: { ...s.matches, [matchId]: { winner: teamId } },
-      })),
+      }))
+    },
 
     backfillPath: (matchId, teamId, side) => {
       const ancestors = getAncestorChain(matchId, side)
@@ -133,16 +142,16 @@ export function createBracketStore() {
           if (gp.first === teamId || gp.second === teamId || gp.third === teamId) {
             groups[g] = {
               ...gp,
-              first: gp.first === teamId ? null : gp.first,
-              second: gp.second === teamId ? null : gp.second,
-              third: gp.third === teamId ? null : gp.third,
-              thirdSlot: gp.third === teamId ? null : gp.thirdSlot,
+              first: (gp.first === teamId && !isGroupFieldLocked(g, 'first')) ? null : gp.first,
+              second: (gp.second === teamId && !isGroupFieldLocked(g, 'second')) ? null : gp.second,
+              third: (gp.third === teamId && !isGroupFieldLocked(g, 'third')) ? null : gp.third,
+              thirdSlot: (gp.third === teamId && !isGroupFieldLocked(g, 'third')) ? null : gp.thirdSlot,
             }
           }
         }
         const matches = { ...s.matches }
         for (const id of Object.keys(matches) as MatchId[]) {
-          if (matches[id].winner === teamId) {
+          if (matches[id].winner === teamId && !isMatchLocked(id)) {
             matches[id] = { winner: null }
           }
         }
@@ -161,10 +170,19 @@ export function createBracketStore() {
     },
 
     loadState: (state) =>
-      set(() => ({
-        groups: state.groups,
-        matches: state.matches,
-      })),
+      set(() => {
+        // Merge: user state base, but confirmed picks always win
+        const groups = { ...state.groups }
+        for (const [g, conf] of Object.entries(CONFIRMED_GROUPS) as [GroupKey, typeof CONFIRMED_GROUPS[GroupKey]][]) {
+          if (!conf) continue
+          groups[g] = { ...groups[g], ...conf }
+        }
+        const matches = { ...state.matches }
+        for (const [id, winner] of Object.entries(CONFIRMED_MATCHES) as [MatchId, string][]) {
+          matches[id] = { winner }
+        }
+        return { groups, matches }
+      }),
   }))
 }
 
