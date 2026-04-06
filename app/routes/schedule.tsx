@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useStore } from 'zustand'
 import { bracketStore } from '../store/bracketStore'
 import { groupScoreStore } from '../store/groupScoreStore'
@@ -114,18 +115,103 @@ function TeamLabel({ team }: { team: ResolvedTeam }) {
   )
 }
 
-function formatLocalTime(utcDate: string): string {
-  const date = new Date(utcDate)
-  return date.toLocaleString(undefined, {
+const ALL_TIMEZONES: string[] = Intl.supportedValuesOf('timeZone')
+
+function tzOffset(tz: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat('en', { timeZone: tz, timeZoneName: 'shortOffset' })
+      .formatToParts(new Date())
+    const off = parts.find(p => p.type === 'timeZoneName')?.value ?? ''
+    return off
+  } catch { return '' }
+}
+
+function TzPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen]     = useState(false)
+  const [query, setQuery]   = useState('')
+  const ref                 = useRef<HTMLDivElement>(null)
+  const inputRef            = useRef<HTMLInputElement>(null)
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase()
+    return q ? ALL_TIMEZONES.filter(tz => tz.toLowerCase().includes(q)) : ALL_TIMEZONES
+  }, [query])
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
+  }, [])
+
+  useEffect(() => {
+    if (open) { setQuery(''); inputRef.current?.focus() }
+  }, [open])
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-gray-200 flex items-center gap-2 min-w-48"
+      >
+        <span className="flex-1 text-left truncate">{value.replace('_', ' ')}</span>
+        <span className="text-gray-500 text-xs">{tzOffset(value)}</span>
+        <span className="text-gray-500">▾</span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1 z-50 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl w-72">
+          <div className="p-2 border-b border-gray-800">
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search timezone…"
+              className="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm text-white placeholder-gray-500 outline-none"
+            />
+          </div>
+          <div className="max-h-64 overflow-y-auto">
+            {filtered.length === 0 && (
+              <div className="px-3 py-2 text-sm text-gray-500">No results</div>
+            )}
+            {filtered.map(tz => (
+              <button
+                key={tz}
+                onClick={() => { onChange(tz); setOpen(false) }}
+                className={`w-full text-left px-3 py-1.5 text-sm flex justify-between items-center hover:bg-gray-800 ${tz === value ? 'text-green-400' : 'text-gray-200'}`}
+              >
+                <span>{tz.replace(/_/g, ' ')}</span>
+                <span className="text-xs text-gray-500 ml-2 shrink-0">{tzOffset(tz)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const LOCAL_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+function formatTime(utcDate: string, tz: string): string {
+  return new Date(utcDate).toLocaleString(undefined, {
     weekday: 'short', month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
+    timeZone: tz,
   })
 }
 
-function groupByDate(matches: ScheduleMatch[]): Map<string, ScheduleMatch[]> {
+function getDateKey(utcDate: string, tz: string): string {
+  return new Date(utcDate).toLocaleDateString(undefined, {
+    year: 'numeric', month: 'long', day: 'numeric', timeZone: tz,
+  })
+}
+
+function groupByDate(matches: ScheduleMatch[], tz: string): Map<string, ScheduleMatch[]> {
   const map = new Map<string, ScheduleMatch[]>()
   for (const match of matches) {
-    const date = new Date(match.utcDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+    const date = getDateKey(match.utcDate, tz)
     const existing = map.get(date) ?? []
     existing.push(match)
     map.set(date, existing)
@@ -143,22 +229,35 @@ const ROUND_COLORS: Record<string, string> = {
   'Final':        'text-yellow-300',
 }
 
+const TZ_STORAGE_KEY = 'wc2026_tz'
+
 function SchedulePage() {
-  const groups   = useStore(bracketStore,    s => s.groups)
-  const matches  = useStore(bracketStore,    s => s.matches)
+  const groups    = useStore(bracketStore,    s => s.groups)
+  const matches   = useStore(bracketStore,    s => s.matches)
   const overrides = useStore(groupScoreStore, s => s.overrides)
-  const grouped  = groupByDate(SCHEDULE)
+
+  const [tz, setTz] = useState<string>(() => {
+    try { return localStorage.getItem(TZ_STORAGE_KEY) || LOCAL_TZ } catch { return LOCAL_TZ }
+  })
+
+  function handleTzChange(value: string) {
+    setTz(value)
+    try { localStorage.setItem(TZ_STORAGE_KEY, value) } catch {}
+  }
+
+  const grouped = groupByDate(SCHEDULE, tz)
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      <header className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-4 py-3 flex flex-wrap items-center gap-3 justify-between">
         <span className="text-xl font-bold tracking-tight">WC 2026 Schedule</span>
-        <a href="/predictor" className="text-sm px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">← Predictor</a>
+        <div className="flex items-center gap-3">
+          <TzPicker value={tz} onChange={handleTzChange} />
+          <a href="/predictor" className="text-sm px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 whitespace-nowrap">← Predictor</a>
+        </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6">
-        <p className="text-sm text-gray-400 mb-6">All times shown in your local timezone. Teams resolve from your bracket predictions.</p>
-
         {[...grouped.entries()].map(([date, dayMatches]) => (
           <section key={date} className="mb-8">
             <h2 className="text-base font-semibold text-gray-300 mb-3 border-b border-gray-800 pb-1">{date}</h2>
@@ -168,17 +267,17 @@ function SchedulePage() {
                 const away = resolveTeam(match.awayTeam, groups, matches, overrides)
                 return (
                   <div key={match.matchNumber} className="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-lg px-4 py-3">
-                    <span className="text-xs text-gray-500 w-8 flex-shrink-0">M{match.matchNumber}</span>
-                    <span className={`text-xs font-medium w-28 flex-shrink-0 ${ROUND_COLORS[match.round] ?? 'text-gray-400'}`}>
+                    <span className="text-xs text-gray-500 w-8 shrink-0">M{match.matchNumber}</span>
+                    <span className={`text-xs font-medium w-28 shrink-0 ${ROUND_COLORS[match.round] ?? 'text-gray-400'}`}>
                       {match.round}{match.group ? ` ${match.group}` : ''}
                     </span>
                     <span className="flex-1 text-sm flex items-center gap-1 min-w-0">
                       <TeamLabel team={home} />
-                      <span className="text-gray-500 mx-1 flex-shrink-0">vs</span>
+                      <span className="text-gray-500 mx-1 shrink-0">vs</span>
                       <TeamLabel team={away} />
                     </span>
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-sm text-gray-200">{formatLocalTime(match.utcDate)}</div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm text-gray-200">{formatTime(match.utcDate, tz)}</div>
                       <div className="text-xs text-gray-500">{match.city}</div>
                     </div>
                   </div>
