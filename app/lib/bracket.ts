@@ -1,6 +1,7 @@
 import { R32_FIXTURES, BRACKET_TREE, getGroup, getTeamById } from '../data/teams'
 import type { MatchId, GroupKey, R32Fixture, Team } from '../data/teams'
 import type { BracketState } from '../store/types'
+import { THIRD_PLACE_SCENARIOS } from '../data/thirdPlaceScenarios'
 
 /** All R32-level ancestor match IDs of a given match (or the match itself if it is R32) */
 export function getR32Ancestors(matchId: MatchId): MatchId[] {
@@ -90,6 +91,59 @@ export function getPossibleR32Slots(
   return result
 }
 
+/**
+ * Given already-selected 3rd-place groups, use the 495 scenario table to determine
+ * which groups are valid candidates for a specific R32 third-place slot.
+ * Returns a Set of valid group keys, or the full fixture groups if no narrowing is possible.
+ */
+function getValidGroupsForSlot(r32Id: MatchId, fixtureGroups: GroupKey[], state: BracketState): Set<GroupKey> {
+  // Groups with third set + committed to a slot
+  const locked = new Map<GroupKey, MatchId>()
+  // Groups with third set but no slot yet (group-card picks)
+  const partial = new Set<GroupKey>()
+
+  for (const g of Object.keys(state.groups) as GroupKey[]) {
+    const gp = state.groups[g]
+    if (gp.third !== null) {
+      if (gp.thirdSlot !== null) {
+        locked.set(g, gp.thirdSlot as MatchId)
+      } else {
+        partial.add(g)
+      }
+    }
+  }
+
+  // No locked or partial groups → no 495 narrowing needed
+  if (locked.size === 0 && partial.size === 0) return new Set(fixtureGroups)
+
+  const allSelected = [...locked.keys(), ...partial]
+  const validGroups = new Set<GroupKey>()
+
+  for (const [key, assignment] of Object.entries(THIRD_PLACE_SCENARIOS)) {
+    const scenarioGroups = key.split('') as GroupKey[]
+
+    // Scenario must include all currently selected groups
+    if (!allSelected.every(g => scenarioGroups.includes(g))) continue
+
+    // Locked groups must map to their committed slot in this scenario
+    let consistent = true
+    for (const [g, slot] of locked) {
+      if (assignment[g] !== slot) { consistent = false; break }
+    }
+    if (!consistent) continue
+
+    // This scenario is compatible — collect which group goes to r32Id
+    for (const [g, slot] of Object.entries(assignment)) {
+      if (slot === r32Id && fixtureGroups.includes(g as GroupKey)) {
+        validGroups.add(g as GroupKey)
+      }
+    }
+  }
+
+  // If no scenarios matched (shouldn't happen), fall back to full fixture groups
+  return validGroups.size > 0 ? validGroups : new Set(fixtureGroups)
+}
+
 export function getR32SlotPool(r32Id: MatchId, side: 'home' | 'away', state: BracketState): Team[] {
   const fixture = R32_FIXTURES.find(f => f.id === r32Id)
   if (!fixture) return []
@@ -102,6 +156,11 @@ export function getR32SlotPool(r32Id: MatchId, side: 'home' | 'away', state: Bra
     base = seed.group ? getGroup(seed.group) : []
   }
 
+  const fixtureGroups = seed.source === 'third' ? (seed.groups ?? []) as GroupKey[] : []
+  const validGroupsForThisSlot = seed.source === 'third'
+    ? getValidGroupsForSlot(r32Id, fixtureGroups, state)
+    : null
+
   return base.filter(team => {
     const gp = state.groups[team.group as GroupKey]
     if (!gp) return true
@@ -111,6 +170,9 @@ export function getR32SlotPool(r32Id: MatchId, side: 'home' | 'away', state: Bra
       if (gp.first === team.id || gp.second === team.id) return false
       // Exclude if this group's 3rd is already assigned to a different R32 slot
       if (gp.thirdSlot !== null && gp.thirdSlot !== r32Id) return false
+      // 495 scenario narrowing: exclude groups that can't go to this slot
+      // given the already-selected 3rd-place groups
+      if (validGroupsForThisSlot && !validGroupsForThisSlot.has(team.group as GroupKey)) return false
     }
     return true
   })

@@ -2,7 +2,7 @@ import { createStore } from 'zustand/vanilla'
 import { EMPTY_STATE } from '../lib/encoding'
 import { BRACKET_TREE } from '../data/teams'
 import { CONFIRMED_GROUPS, CONFIRMED_MATCHES, isGroupFieldLocked, isMatchLocked } from '../data/confirmed'
-import { resolveThirdSlots } from '../data/thirdPlaceScenarios'
+import { resolveThirdSlots, THIRD_PLACE_SCENARIOS } from '../data/thirdPlaceScenarios'
 import type { BracketState, TeamId } from './types'
 import type { GroupKey, MatchId } from '../data/teams'
 
@@ -74,31 +74,52 @@ function makeEmptyState(): BracketState {
   }
 }
 
-/** Given current groups state, resolve and apply thirdSlot for all 8 qualifying groups.
- *  Qualifying = groups that have a third-place team selected.
- *  If exactly 8 such groups exist, slot assignments are determined from the 495-scenario table.
- *  Otherwise all thirdSlots are cleared.
+/** Given current groups state, resolve and apply thirdSlot for all qualifying groups.
+ *  If exactly 8 qualify, full assignment from the 495-scenario table.
+ *  If < 8, auto-assign any group whose slot is uniquely determined by all valid remaining scenarios.
+ *  Manually-set thirdSlots (via bracket slot picking) are always preserved.
  */
 function applyThirdSlots(groups: BracketState['groups']): BracketState['groups'] {
   const qualifying = (Object.keys(groups) as GroupKey[]).filter(g => groups[g].third !== null)
   let result: BracketState['groups'] = groups
+
+  // Collect groups with explicitly-set slots vs unassigned
+  const locked = qualifying.filter(g => groups[g].thirdSlot !== null)
+  const partial = qualifying.filter(g => groups[g].thirdSlot === null)
+
+  // Find 495 scenarios that include ALL qualifying groups AND respect explicitly-set slots
+  const validScenarios = Object.entries(THIRD_PLACE_SCENARIOS).filter(([key, assignment]) => {
+    const scenarioGroups = key.split('')
+    if (!qualifying.every(g => scenarioGroups.includes(g))) return false
+    if (qualifying.length === 8 && scenarioGroups.length !== 8) return false
+    return locked.every(g => assignment[g] === groups[g].thirdSlot)
+  })
+
   if (qualifying.length === 8) {
-    const slots = resolveThirdSlots(qualifying)
-    for (const g of Object.keys(groups) as GroupKey[]) {
+    // Full assignment: use the single consistent scenario (or fall back to default lookup)
+    const slots = validScenarios.length > 0
+      ? validScenarios[0][1]
+      : resolveThirdSlots(qualifying)
+    for (const g of partial) {
       const newSlot = (slots[g] as MatchId | undefined) ?? null
       if (groups[g].thirdSlot !== newSlot) {
         if (result === groups) result = { ...groups }
         result = { ...result, [g]: { ...result[g], thirdSlot: newSlot } }
       }
     }
-  } else {
-    for (const g of Object.keys(groups) as GroupKey[]) {
-      if (groups[g].thirdSlot !== null) {
-        if (result === groups) result = { ...groups }
-        result = { ...result, [g]: { ...result[g], thirdSlot: null } }
-      }
+    return result
+  }
+
+  // Partial: for each unassigned group, auto-assign if all valid scenarios agree on one slot
+  for (const g of partial) {
+    const slots = new Set(validScenarios.map(([, a]) => a[g]).filter(Boolean))
+    if (slots.size === 1) {
+      const slot = [...slots][0] as MatchId
+      if (result === groups) result = { ...groups }
+      result = { ...result, [g]: { ...result[g], thirdSlot: slot } }
     }
   }
+
   return result
 }
 
@@ -130,7 +151,15 @@ export function createBracketStore() {
     setGroupThird: (group, teamId) => {
       if (isGroupFieldLocked(group, 'third')) return
       set(s => {
-        const updated = { ...s.groups, [group]: { ...s.groups[group], third: teamId } }
+        const updated = {
+          ...s.groups,
+          [group]: {
+            ...s.groups[group],
+            third: teamId,
+            // When removing a 3rd-place pick, also clear the manually-set slot
+            thirdSlot: teamId === null ? null : s.groups[group].thirdSlot,
+          },
+        }
         return { groups: applyThirdSlots(updated) }
       })
     },
