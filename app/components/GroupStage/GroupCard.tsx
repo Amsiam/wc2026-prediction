@@ -14,7 +14,7 @@ export function GroupCard({ groupKey }: Props) {
   const scores   = useStore(groupScoreStore, s => s.scores)
   const overrides = useStore(groupScoreStore, s => s.overrides)
   const activeModal = useStore(groupScoreStore, s => s.activeGroupModal)
-  const { setGroupFirst, setGroupSecond, setThirdRank } = bracketStore.getState()
+  const { setGroupFirst, setGroupSecond, setGroupThird, setThirdRank } = bracketStore.getState()
   const showScores = activeModal === groupKey
 
   // Build nameToId override map for standings
@@ -33,9 +33,11 @@ export function GroupCard({ groupKey }: Props) {
     if (complete) return  // standings-driven; don't allow manual override when scores set
     if (pick.first === teamId)  { setGroupFirst(groupKey, null); return }
     if (pick.second === teamId) { setGroupSecond(groupKey, null); return }
-    if (!pick.first)       setGroupFirst(groupKey, teamId)
-    else if (!pick.second) setGroupSecond(groupKey, teamId)
-    else                   setGroupFirst(groupKey, teamId)
+    if (pick.third === teamId)  { setGroupThird(groupKey, null); return }
+    if (!pick.first)        setGroupFirst(groupKey, teamId)
+    else if (!pick.second)  setGroupSecond(groupKey, teamId)
+    else if (!pick.third)   setGroupThird(groupKey, teamId)
+    else                    setGroupFirst(groupKey, teamId)
   }
 
   const isComplete = complete || (pick.first !== null && pick.second !== null)
@@ -86,6 +88,7 @@ export function GroupCard({ groupKey }: Props) {
             {teams.map(team => {
               const isFirst  = pick.first  === team.id
               const isSecond = pick.second === team.id
+              const isThird  = pick.third  === team.id
               const ov = overrides[team.id]
               return (
                 <button
@@ -94,6 +97,7 @@ export function GroupCard({ groupKey }: Props) {
                   className={`w-full flex items-center gap-2 px-3 py-2 rounded text-sm transition-colors ${
                     isFirst  ? 'bg-yellow-600 text-white' :
                     isSecond ? 'bg-blue-700 text-white' :
+                    isThird  ? 'bg-green-800 text-white' :
                     'bg-gray-800 hover:bg-gray-700 text-gray-200'
                   }`}
                 >
@@ -102,6 +106,7 @@ export function GroupCard({ groupKey }: Props) {
                   {team.placeholder && !ov && <span className="text-xs opacity-40 italic">TBD</span>}
                   {isFirst  && <span className="text-xs opacity-75">1st</span>}
                   {isSecond && <span className="text-xs opacity-75">2nd</span>}
+                  {isThird  && <span className="text-xs opacity-75">3rd</span>}
                 </button>
               )
             })}

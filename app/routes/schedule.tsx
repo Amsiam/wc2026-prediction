@@ -153,7 +153,7 @@ function TzPicker({ value, onChange }: { value: string; onChange: (v: string) =>
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-gray-200 flex items-center gap-2 min-w-48"
+        className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-gray-200 flex items-center gap-2 min-w-0 max-w-48"
       >
         <span className="flex-1 text-left truncate">{value.replace('_', ' ')}</span>
         <span className="text-gray-500 text-xs">{tzOffset(value)}</span>
@@ -161,7 +161,7 @@ function TzPicker({ value, onChange }: { value: string; onChange: (v: string) =>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 z-50 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl w-72">
+        <div className="absolute right-0 top-full mt-1 z-50 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl w-72 max-w-[calc(100vw-2rem)]">
           <div className="p-2 border-b border-gray-800">
             <input
               ref={inputRef}
@@ -196,7 +196,7 @@ const LOCAL_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone
 
 function formatTime(utcDate: string, tz: string): string {
   return new Date(utcDate).toLocaleString(undefined, {
-    weekday: 'short', month: 'short', day: 'numeric',
+    month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
     timeZone: tz,
   })
@@ -266,19 +266,23 @@ function SchedulePage() {
                 const home = resolveTeam(match.homeTeam, groups, matches, overrides)
                 const away = resolveTeam(match.awayTeam, groups, matches, overrides)
                 return (
-                  <div key={match.matchNumber} className="flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-lg px-4 py-3">
-                    <span className="text-xs text-gray-500 w-8 shrink-0">M{match.matchNumber}</span>
-                    <span className={`text-xs font-medium w-28 shrink-0 ${ROUND_COLORS[match.round] ?? 'text-gray-400'}`}>
-                      {match.round}{match.group ? ` ${match.group}` : ''}
-                    </span>
-                    <span className="flex-1 text-sm flex items-center gap-1 min-w-0">
-                      <TeamLabel team={home} />
-                      <span className="text-gray-500 mx-1 shrink-0">vs</span>
-                      <TeamLabel team={away} />
-                    </span>
-                    <div className="text-right shrink-0">
-                      <div className="text-sm text-gray-200">{formatTime(match.utcDate, tz)}</div>
-                      <div className="text-xs text-gray-500">{match.city}</div>
+                  <div key={match.matchNumber} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2.5 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-3">
+                    {/* Top row: match# + round + teams */}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs text-gray-500 shrink-0">M{match.matchNumber}</span>
+                      <span className={`text-xs font-medium shrink-0 ${ROUND_COLORS[match.round] ?? 'text-gray-400'}`}>
+                        {match.group ? `Grp ${match.group}` : match.round.replace('Round of ', 'R')}
+                      </span>
+                      <span className="text-sm flex items-center gap-1 min-w-0 flex-1">
+                        <TeamLabel team={home} />
+                        <span className="text-gray-500 mx-0.5 shrink-0">vs</span>
+                        <TeamLabel team={away} />
+                      </span>
+                    </div>
+                    {/* Bottom row on mobile / right side on desktop */}
+                    <div className="flex items-center gap-2 sm:ml-auto sm:text-right sm:flex-col sm:items-end sm:gap-0">
+                      <span className="text-xs text-gray-200">{formatTime(match.utcDate, tz)}</span>
+                      <span className="text-xs text-gray-500">{match.city}</span>
                     </div>
                   </div>
                 )
