@@ -278,6 +278,7 @@ export function BracketView() {
                   </div>
                 ) : null}
               </div>
+
             </div>
 
             {[...RIGHT_ROUNDS].reverse().map((ids, i) => (
@@ -286,9 +287,10 @@ export function BracketView() {
             <GroupsColumn groups={['G','H','I','J','K','L'] as GroupKey[]} />
           </div>
 
-          <div className="mt-3 flex justify-center gap-4 items-center">
+          <div className="mt-3 flex flex-col items-center gap-1.5 pb-3">
             <span className="third-place-label">3rd Place Play-off</span>
             <ThirdPlaceSlot onWinnerPick={handleWinnerPick} />
+            <span className="text-xs text-gray-600 tracking-widest mt-1">{window.location.host}</span>
           </div>
         </div>
 

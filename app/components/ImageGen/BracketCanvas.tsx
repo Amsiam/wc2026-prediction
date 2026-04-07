@@ -331,6 +331,25 @@ export const BracketCanvas = forwardRef<HTMLDivElement>((_, ref) => {
           <RoundCol key={i} matchIds={ids} label={lbl} />
         ))}
       </div>
+
+      {/* ── Footer ── */}
+      <div style={{
+        borderTop: '1px solid #0f172a',
+        padding: '5px 28px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+      }}>
+        <div style={{
+          fontFamily: 'Arial,sans-serif',
+          fontSize: 9,
+          color: '#475569',
+          letterSpacing: '0.14em',
+        }}>
+          {window.location.host}
+        </div>
+      </div>
     </div>
   )
 })
