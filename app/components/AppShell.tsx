@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { bracketStore } from '../store/bracketStore'
 import { groupScoreStore } from '../store/groupScoreStore'
 import { EMPTY_STATE } from '../lib/encoding'
@@ -21,7 +21,17 @@ export function AppShell() {
   const [tab, setTab] = useState<Tab>(() =>
     new URLSearchParams(window.location.search).has('p') ? 'knockout' : 'groups'
   )
+  const mainRef = useRef<HTMLElement>(null)
+  const scrollPos = useRef<Record<Tab, number>>({ groups: 0, knockout: 0 })
   const placedCount = usePlacedCount()
+
+  function handleTabChange(next: Tab) {
+    if (mainRef.current) scrollPos.current[tab] = mainRef.current.scrollTop
+    setTab(next)
+    requestAnimationFrame(() => {
+      if (mainRef.current) mainRef.current.scrollTop = scrollPos.current[next]
+    })
+  }
 
   function handleClear() {
     if (!confirm('Reset all predictions and scores?')) return
@@ -55,7 +65,7 @@ export function AppShell() {
         {(['groups', 'knockout'] as Tab[]).map(t => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => handleTabChange(t)}
             className={`px-6 py-3 text-sm font-medium capitalize transition-colors ${
               tab === t
                 ? 'border-b-2 border-green-500 text-white'
@@ -67,7 +77,7 @@ export function AppShell() {
         ))}
       </nav>
 
-      <main className="flex-1 overflow-auto p-4">
+      <main ref={mainRef} className="flex-1 overflow-auto p-4">
         {tab === 'groups' ? <GroupGrid /> : <BracketView />}
       </main>
     </div>

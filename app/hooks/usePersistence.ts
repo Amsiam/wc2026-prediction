@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { bracketStore } from '../store/bracketStore'
 import { encodePicks, decodePicks } from '../lib/encoding'
 
@@ -26,15 +27,19 @@ export function useHydrate() {
 
 // Call once to set up auto-save on every store change
 export function usePersist() {
+  const navigate = useNavigate()
   useEffect(() => {
     return bracketStore.subscribe((state) => {
       const encoded = encodePicks(state)
       localStorage.setItem(LS_KEY, encoded)
-      const url = new URL(window.location.href)
-      url.searchParams.set('p', encoded)
-      window.history.replaceState(null, '', url.toString())
+      navigate({
+        to: '/predictor',
+        search: { p: encoded },
+        replace: true,
+        resetScroll: false,
+      })
     })
-  }, [])
+  }, [navigate])
 }
 
 // Returns the current shareable URL

@@ -2,6 +2,7 @@ import { createStore } from 'zustand/vanilla'
 import { EMPTY_STATE } from '../lib/encoding'
 import { BRACKET_TREE } from '../data/teams'
 import { CONFIRMED_GROUPS, CONFIRMED_MATCHES, isGroupFieldLocked, isMatchLocked } from '../data/confirmed'
+import { resolveThirdSlots } from '../data/thirdPlaceScenarios'
 import type { BracketState, TeamId } from './types'
 import type { GroupKey, MatchId } from '../data/teams'
 
@@ -73,6 +74,34 @@ function makeEmptyState(): BracketState {
   }
 }
 
+/** Given current groups state, resolve and apply thirdSlot for all 8 qualifying groups.
+ *  Qualifying = groups that have a third-place team selected.
+ *  If exactly 8 such groups exist, slot assignments are determined from the 495-scenario table.
+ *  Otherwise all thirdSlots are cleared.
+ */
+function applyThirdSlots(groups: BracketState['groups']): BracketState['groups'] {
+  const qualifying = (Object.keys(groups) as GroupKey[]).filter(g => groups[g].third !== null)
+  let result: BracketState['groups'] = groups
+  if (qualifying.length === 8) {
+    const slots = resolveThirdSlots(qualifying)
+    for (const g of Object.keys(groups) as GroupKey[]) {
+      const newSlot = (slots[g] as MatchId | undefined) ?? null
+      if (groups[g].thirdSlot !== newSlot) {
+        if (result === groups) result = { ...groups }
+        result = { ...result, [g]: { ...result[g], thirdSlot: newSlot } }
+      }
+    }
+  } else {
+    for (const g of Object.keys(groups) as GroupKey[]) {
+      if (groups[g].thirdSlot !== null) {
+        if (result === groups) result = { ...groups }
+        result = { ...result, [g]: { ...result[g], thirdSlot: null } }
+      }
+    }
+  }
+  return result
+}
+
 export function createBracketStore() {
   return createStore<BracketStore>((set) => ({
     ...makeEmptyState(),
@@ -100,9 +129,10 @@ export function createBracketStore() {
 
     setGroupThird: (group, teamId) => {
       if (isGroupFieldLocked(group, 'third')) return
-      set(s => ({
-        groups: { ...s.groups, [group]: { ...s.groups[group], third: teamId } },
-      }))
+      set(s => {
+        const updated = { ...s.groups, [group]: { ...s.groups[group], third: teamId } }
+        return { groups: applyThirdSlots(updated) }
+      })
     },
 
     setGroupThirdSlot: (group, matchId) =>
@@ -181,7 +211,7 @@ export function createBracketStore() {
         for (const [id, winner] of Object.entries(CONFIRMED_MATCHES) as [MatchId, string][]) {
           matches[id] = { winner }
         }
-        return { groups, matches }
+        return { groups: applyThirdSlots(groups), matches }
       }),
   }))
 }

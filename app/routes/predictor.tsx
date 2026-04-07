@@ -9,5 +9,8 @@ function PredictorPage() {
 }
 
 export const Route = createFileRoute('/predictor')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    p: typeof search.p === 'string' ? search.p : undefined,
+  }),
   component: PredictorPage,
 })
