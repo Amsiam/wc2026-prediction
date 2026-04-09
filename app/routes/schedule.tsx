@@ -239,19 +239,36 @@ function SchedulePage() {
   const [tz, setTz] = useState<string>(() => {
     try { return localStorage.getItem(TZ_STORAGE_KEY) || LOCAL_TZ } catch { return LOCAL_TZ }
   })
+  const [teamSearch, setTeamSearch] = useState('')
 
   function handleTzChange(value: string) {
     setTz(value)
     try { localStorage.setItem(TZ_STORAGE_KEY, value) } catch {}
   }
 
-  const grouped = groupByDate(SCHEDULE, tz)
+  const filteredSchedule = useMemo(() => {
+    const q = teamSearch.trim().toLowerCase()
+    if (!q) return SCHEDULE
+    return SCHEDULE.filter(match => {
+      const home = resolveTeam(match.homeTeam, groups, matches, overrides)
+      const away = resolveTeam(match.awayTeam, groups, matches, overrides)
+      return home.name.toLowerCase().includes(q) || away.name.toLowerCase().includes(q)
+    })
+  }, [teamSearch, groups, matches, overrides])
+
+  const grouped = groupByDate(filteredSchedule, tz)
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       <header className="sticky top-0 z-10 bg-gray-900 border-b border-gray-800 px-4 py-3 flex flex-wrap items-center gap-3 justify-between">
         <span className="text-xl font-bold tracking-tight">WC 2026 Schedule</span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          <input
+            value={teamSearch}
+            onChange={e => setTeamSearch(e.target.value)}
+            placeholder="Search team…"
+            className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white placeholder-gray-500 outline-none w-36"
+          />
           <TzPicker value={tz} onChange={handleTzChange} />
           <a href="/predictor" className="text-sm px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 whitespace-nowrap">← Predictor</a>
         </div>
