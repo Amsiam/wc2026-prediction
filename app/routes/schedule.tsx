@@ -26,6 +26,34 @@ interface ResolvedTeam {
   known: boolean
 }
 
+function normalizeTeamName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[’']/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+const TEAM_NAME_ALIASES: Record<string, string> = {
+  'usa': 'united states',
+  'turkiye': 'turkey',
+  'korea republic': 'south korea',
+  'czechia': 'czech republic',
+  'bosnia and herzegovina': 'bosnia herzegovina',
+  'cote divoire': 'ivory coast',
+  'cape verde': 'cabo verde',
+  'congo dr': 'dr congo',
+  'to be announced': 'tbd',
+}
+
+function canonicalTeamName(name: string): string {
+  const n = normalizeTeamName(name)
+  return TEAM_NAME_ALIASES[n] ?? n
+}
+
 function resolveTeam(
   str: string,
   groups: Record<GroupKey, GroupPick>,
@@ -80,7 +108,7 @@ function resolveTeam(
     const bracketId = SCHEDULE_TO_BRACKET[parseInt(loser[1])]
     if (bracketId) {
       const m = matches[bracketId]
-      const children = (BRACKET_TREE as Record<string, [MatchId, MatchId]>)[bracketId]
+      const children = (BRACKET_TREE as Record<string, readonly [MatchId, MatchId]>)[bracketId]
       if (children && m?.winner) {
         const homeId = matches[children[0]]?.winner
         const awayId = matches[children[1]]?.winner
@@ -96,7 +124,8 @@ function resolveTeam(
   }
 
   // Group stage: look up by name for overrides
-  const teamByName = TEAMS.find(t => t.name === str)
+  const needle = canonicalTeamName(str)
+  const teamByName = TEAMS.find(t => canonicalTeamName(t.name) === needle)
   if (teamByName) {
     const ov = overrides[teamByName.id]
     return { name: ov?.name ?? str, flagCode: ov?.flagCode ?? teamByName.flagCode, known: true }

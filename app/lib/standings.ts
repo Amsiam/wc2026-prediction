@@ -17,11 +17,39 @@ export interface TeamStanding {
 export type GroupScores = Record<number, { home: number | null; away: number | null }>
 
 /** Map schedule display name → team id */
+function normalizeTeamName(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[’']/g, '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+}
+
+const TEAM_NAME_ALIASES: Record<string, string> = {
+  'usa': 'united states',
+  'turkiye': 'turkey',
+  'korea republic': 'south korea',
+  'czechia': 'czech republic',
+  'bosnia and herzegovina': 'bosnia herzegovina',
+  'cote divoire': 'ivory coast',
+  'cape verde': 'cabo verde',
+  'congo dr': 'dr congo',
+}
+
+function canonicalTeamName(name: string): string {
+  const n = normalizeTeamName(name)
+  return TEAM_NAME_ALIASES[n] ?? n
+}
+
 function resolveTeamId(name: string, overrides: Record<string, string>): string | undefined {
   // Check override first (scheduleDisplayName → teamId)
   if (overrides[name]) return overrides[name]
   // Exact name match
-  return TEAMS.find(t => t.name === name)?.id
+  const needle = canonicalTeamName(name)
+  return TEAMS.find(t => canonicalTeamName(t.name) === needle)?.id
 }
 
 /** All group stage matches for a group, ordered by match number */
