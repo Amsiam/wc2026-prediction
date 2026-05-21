@@ -96,6 +96,7 @@ export function BracketView() {
   const finalWinner = useStore(bracketStore, s => s.matches.final?.winner)
   const champion = finalWinner ? getTeamById(finalWinner) : null
 
+  /** Path from an R32 match up to a feeder match (inclusive), for upstream backfill. */
   function findPath(from: MatchId, to: MatchId): MatchId[] | null {
     if (from === to) return [from]
     if (to.startsWith('r32')) return null
@@ -114,7 +115,6 @@ export function BracketView() {
 
   function handleWinnerPick(matchId: MatchId, teamId: string) {
     const current = bracketStore.getState().matches[matchId]?.winner
-    bracketStore.getState().clearDownstream(matchId)
     bracketStore.getState().setMatchWinner(matchId, current === teamId ? null : teamId)
   }
 
@@ -192,6 +192,7 @@ export function BracketView() {
       if (seed.source === 'winner') store.setGroupFirst(seed.group! as GroupKey, team.id)
       else if (seed.source === 'runner') store.setGroupSecond(seed.group! as GroupKey, team.id)
       else { store.setGroupThird(team.group as GroupKey, team.id); store.setGroupThirdSlot(team.group as GroupKey, matchId) }
+      store.setMatchWinner(matchId, team.id)
       setPicking({ phase: 'idle' })
       return
     }
@@ -214,16 +215,12 @@ export function BracketView() {
       }
     }
 
-    // Clear child's winner + downstream
-    store.clearDownstream(childId)
-    store.setMatchWinner(childId, null)
-
-    // Set group position
+    // Set group qualification for this bracket path
     if (entry.position === 'first') store.setGroupFirst(entry.group, team.id)
     else if (entry.position === 'second') store.setGroupSecond(entry.group, team.id)
     else { store.setGroupThird(entry.group, team.id); store.setGroupThirdSlot(entry.group, entry.r32Id) }
 
-    // Backward fill: from R32 entry up to childId
+    // Backfill upstream: R32 → … → feeder match on this slot's path only
     const path = findPath(entry.r32Id, childId)
     if (path) {
       for (const id of path) store.setMatchWinner(id, team.id)

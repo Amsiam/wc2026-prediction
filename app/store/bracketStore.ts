@@ -16,6 +16,7 @@ export interface BracketActions {
   setMatchWinner: (matchId: MatchId, teamId: TeamId | null) => void
   backfillPath: (matchId: MatchId, teamId: TeamId, side: 'home' | 'away') => void
   clearDownstream: (matchId: MatchId) => void
+  fillDownstream: (matchId: MatchId, teamId: TeamId) => void
   loadState: (state: BracketState) => void
 }
 
@@ -55,6 +56,18 @@ function getDownstreamMatches(matchId: MatchId): MatchId[] {
     for (const id of getDownstreamMatches(parentId)) result.add(id)
   }
   return [...result]
+}
+
+/** Ordered path from matchId toward the final (nearest parent first). */
+function getDownstreamPath(matchId: MatchId): MatchId[] {
+  const path: MatchId[] = []
+  let parents = PARENT_MAP.get(matchId) ?? []
+  while (parents.length > 0) {
+    const next = parents[0]
+    path.push(next)
+    parents = PARENT_MAP.get(next) ?? []
+  }
+  return path
 }
 
 // Get the chain of ancestor match IDs going upstream from matchId on a given side
@@ -223,6 +236,20 @@ export function createBracketStore() {
         const matches = { ...s.matches }
         for (const id of downstream) {
           matches[id] = { winner: null }
+        }
+        return { matches }
+      })
+    },
+
+    fillDownstream: (matchId, teamId) => {
+      const path = getDownstreamPath(matchId)
+      set(s => {
+        const matches = { ...s.matches }
+        for (const id of path) {
+          if (isMatchLocked(id)) continue
+          const w = matches[id]?.winner ?? null
+          if (w === null) matches[id] = { winner: teamId }
+          else if (w !== teamId) break
         }
         return { matches }
       })
