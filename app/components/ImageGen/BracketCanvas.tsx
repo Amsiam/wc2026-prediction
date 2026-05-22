@@ -343,11 +343,13 @@ export const BracketCanvas = forwardRef<HTMLDivElement>((_, ref) => {
       }}>
         <div style={{
           fontFamily: 'Arial,sans-serif',
-          fontSize: 9,
-          color: '#475569',
-          letterSpacing: '0.14em',
+          fontSize: 11,
+          fontWeight: 600,
+          color: '#cbd5e1',
+          letterSpacing: '0.08em',
+          textShadow: '0 1px 2px rgba(0,0,0,0.45)',
         }}>
-          {window.location.host}
+          https://{window.location.host}
         </div>
       </div>
     </div>

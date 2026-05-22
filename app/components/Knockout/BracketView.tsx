@@ -288,7 +288,9 @@ export function BracketView() {
           <div className="mt-3 flex flex-col items-center gap-1.5 pb-3">
             <span className="third-place-label">3rd Place Play-off</span>
             <ThirdPlaceSlot onWinnerPick={handleWinnerPick} />
-            <span className="text-xs text-gray-600 tracking-widest mt-1">{window.location.host}</span>
+            <span className="bracket-site-url mt-1">
+              https://{window.location.host}
+            </span>
           </div>
         </div>
 
