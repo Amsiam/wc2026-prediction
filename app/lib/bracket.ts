@@ -234,3 +234,31 @@ export function inferTeamR32Entry(
   }
   return null
 }
+
+/** True if `matchId` is the same match or a feeder below `parentId` in the bracket tree. */
+export function isFeederOfMatch(matchId: MatchId, parentId: MatchId): boolean {
+  if (matchId === parentId) return true
+  const children = (BRACKET_TREE as Record<string, readonly [string, string]>)[parentId]
+  if (!children) return false
+  return (
+    isFeederOfMatch(matchId, children[0] as MatchId) ||
+    isFeederOfMatch(matchId, children[1] as MatchId)
+  )
+}
+
+/** Losing side of a knockout match; null if winner missing or out of sync with feeders. */
+export function getMatchLoser(
+  matchId: MatchId,
+  matches: Record<string, { winner: string | null }>,
+): string | null {
+  const winner = matches[matchId]?.winner ?? null
+  if (!winner) return null
+  const children = (BRACKET_TREE as Record<string, readonly [string, string]>)[matchId]
+  if (!children) return null
+  const a = matches[children[0] as MatchId]?.winner ?? null
+  const b = matches[children[1] as MatchId]?.winner ?? null
+  if (winner !== a && winner !== b) return null
+  if (a && a !== winner) return a
+  if (b && b !== winner) return b
+  return null
+}

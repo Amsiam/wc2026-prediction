@@ -192,7 +192,8 @@ export function BracketView() {
       if (seed.source === 'winner') store.setGroupFirst(seed.group! as GroupKey, team.id)
       else if (seed.source === 'runner') store.setGroupSecond(seed.group! as GroupKey, team.id)
       else { store.setGroupThird(team.group as GroupKey, team.id); store.setGroupThirdSlot(team.group as GroupKey, matchId) }
-      store.setMatchWinner(matchId, team.id)
+      // Slot fill only — winner is chosen separately; do not clear match winner here
+      // (setMatchWinner(null) would reconcile and wipe R16→Final picks)
       setPicking({ phase: 'idle' })
       return
     }

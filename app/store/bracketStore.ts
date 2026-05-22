@@ -1,5 +1,6 @@
 import { createStore } from 'zustand/vanilla'
 import { EMPTY_STATE } from '../lib/encoding'
+import { getMatchLoser, isFeederOfMatch } from '../lib/bracket'
 import { BRACKET_TREE } from '../data/teams'
 import { CONFIRMED_GROUPS, CONFIRMED_MATCHES, isGroupFieldLocked, isMatchLocked } from '../data/confirmed'
 import { resolveThirdSlots, THIRD_PLACE_SCENARIOS } from '../data/thirdPlaceScenarios'
@@ -68,6 +69,77 @@ function getDownstreamPath(matchId: MatchId): MatchId[] {
     parents = PARENT_MAP.get(next) ?? []
   }
   return path
+}
+
+/**
+ * When a feeder match winner changes, parent rounds may still list the old team as winner
+ * (both rows look "lost"). Reconcile: if the new feeder is now home/away, promote them.
+ */
+function reconcileParentWinners(
+  matches: BracketState['matches'],
+  changedMatchId: MatchId,
+  newWinner: TeamId | null,
+): BracketState['matches'] {
+  const next = { ...matches }
+  let propagate: TeamId | null = newWinner
+  const queue = [...(PARENT_MAP.get(changedMatchId) ?? [])]
+
+  while (queue.length > 0) {
+    const parentId = queue.shift()!
+    if (isMatchLocked(parentId)) continue
+
+    // 3rd place uses SF losers, not SF winners — handled in reconcileThirdPlace
+    if (parentId === 'third_place') continue
+
+    const children = CHILDREN_MAP.get(parentId)
+    if (!children) continue
+
+    const homeId = next[children[0]]?.winner ?? null
+    const awayId = next[children[1]]?.winner ?? null
+    const parentWinner = next[parentId]?.winner ?? null
+
+    if (
+      parentWinner !== null &&
+      parentWinner !== homeId &&
+      parentWinner !== awayId
+    ) {
+      if (propagate !== null && (propagate === homeId || propagate === awayId)) {
+        next[parentId] = { winner: propagate }
+      } else {
+        next[parentId] = { winner: null }
+        propagate = null
+      }
+    } else if (parentWinner !== null) {
+      propagate = parentWinner
+    }
+
+    for (const pid of PARENT_MAP.get(parentId) ?? []) queue.push(pid)
+  }
+
+  return next
+}
+
+/** Keep third_place winner in sync with current SF losers (participants are losers, not winners). */
+function reconcileThirdPlace(
+  matches: BracketState['matches'],
+  changedMatchId: MatchId,
+): BracketState['matches'] {
+  if (isMatchLocked('third_place')) return matches
+  const next = { ...matches }
+  const homeId = getMatchLoser('sf_m1', next)
+  const awayId = getMatchLoser('sf_m2', next)
+  const w = next.third_place?.winner ?? null
+  if (w === null) return next
+  if (w === homeId || w === awayId) return next
+
+  if (isFeederOfMatch(changedMatchId, 'sf_m1') && homeId) {
+    next.third_place = { winner: homeId }
+  } else if (isFeederOfMatch(changedMatchId, 'sf_m2') && awayId) {
+    next.third_place = { winner: awayId }
+  } else {
+    next.third_place = { winner: null }
+  }
+  return next
 }
 
 // Get the chain of ancestor match IDs going upstream from matchId on a given side
@@ -189,9 +261,12 @@ export function createBracketStore() {
 
     setMatchWinner: (matchId, teamId) => {
       if (isMatchLocked(matchId)) return
-      set(s => ({
-        matches: { ...s.matches, [matchId]: { winner: teamId } },
-      }))
+      set(s => {
+        let matches = { ...s.matches, [matchId]: { winner: teamId } }
+        matches = reconcileParentWinners(matches, matchId, teamId)
+        matches = reconcileThirdPlace(matches, matchId)
+        return { matches }
+      })
     },
 
     backfillPath: (matchId, teamId, side) => {

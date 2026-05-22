@@ -53,4 +53,22 @@ describe('bracketStore', () => {
     store.getState().setThirdRank('A', 5)
     expect(store.getState().groups.A.thirdRank).toBe(5)
   })
+
+  it('changing R32 winner reconciles stale R16 pick to new feeder', () => {
+    // r16_m2: r32_m1 vs r32_m3
+    store.getState().setMatchWinner('r32_m3', 'ESP')
+    store.getState().setMatchWinner('r16_m2', 'FRA')
+    store.getState().setMatchWinner('r32_m1', 'MEX')
+    expect(store.getState().matches.r16_m2.winner).toBe('MEX')
+  })
+
+  it('reconciles third_place when semifinal winner changes', () => {
+    // sf_m1: qf_m1 vs qf_m2
+    store.getState().setMatchWinner('qf_m1', 'FRA')
+    store.getState().setMatchWinner('qf_m2', 'GER')
+    store.getState().setMatchWinner('sf_m1', 'FRA')
+    store.getState().setMatchWinner('third_place', 'GER')
+    store.getState().setMatchWinner('sf_m1', 'GER')
+    expect(store.getState().matches.third_place.winner).toBe('FRA')
+  })
 })

@@ -1,29 +1,11 @@
 import { useStore } from 'zustand'
 import { bracketStore } from '../../store/bracketStore'
-import { getTeamById, BRACKET_TREE } from '../../data/teams'
+import { getMatchLoser } from '../../lib/bracket'
+import { getTeamById } from '../../data/teams'
 import type { MatchId } from '../../data/teams'
 
 interface Props {
   onWinnerPick: (matchId: MatchId, teamId: string) => void
-}
-
-function getLoserFromMatch(
-  matchId: MatchId,
-  matches: Record<string, { winner: string | null }>
-): string | null {
-  const winner = matches[matchId]?.winner
-  if (!winner) return null
-
-  const children = (BRACKET_TREE as Record<string, readonly MatchId[]>)[matchId]
-  if (!children) return null
-
-  const a = matches[children[0]]?.winner
-  const b = matches[children[1]]?.winner
-
-  if (a && a !== winner) return a
-  if (b && b !== winner) return b
-
-  return null
 }
 
 function SlotRow({
@@ -64,10 +46,14 @@ function SlotRow({
 export function ThirdPlaceSlot({ onWinnerPick }: Props) {
   const matches = useStore(bracketStore, s => s.matches)
 
-  const homeId = getLoserFromMatch('sf_m1', matches)
-  const awayId = getLoserFromMatch('sf_m2', matches)
+  const homeId = getMatchLoser('sf_m1', matches)
+  const awayId = getMatchLoser('sf_m2', matches)
 
-  const winner = matches.third_place?.winner ?? null
+  const storedWinner = matches.third_place?.winner ?? null
+  const winner =
+    storedWinner && (storedWinner === homeId || storedWinner === awayId)
+      ? storedWinner
+      : null
   const hasWinner = winner !== null
   const bothKnown = homeId !== null && awayId !== null
 
