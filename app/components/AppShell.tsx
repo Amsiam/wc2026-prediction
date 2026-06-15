@@ -8,6 +8,7 @@ import { BracketView } from './Knockout/BracketView'
 import { GenerateButton } from './ImageGen/GenerateButton'
 import { getShareableUrl } from '../hooks/usePersistence'
 import { ShareMenu } from './ShareMenu'
+import { SyncResultsButton } from './SyncResultsButton'
 import { useStore } from 'zustand'
 
 type Tab = 'groups' | 'knockout'
@@ -50,6 +51,7 @@ export function AppShell() {
           <a href="/schedule" className="text-xs sm:text-sm px-2 sm:px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 whitespace-nowrap">
             Schedule
           </a>
+          <SyncResultsButton />
           <ShareMenu getUrl={getShareableUrl} />
           <button
             onClick={handleClear}

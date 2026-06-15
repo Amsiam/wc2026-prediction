@@ -1,6 +1,8 @@
 import { SCHEDULE } from '../data/schedule'
 import { TEAMS } from '../data/teams'
 import type { GroupKey } from '../data/teams'
+import type { MatchDiscipline, TeamDiscipline } from './fairPlay'
+import { EMPTY_MATCH_DISCIPLINE, totalConduct } from './fairPlay'
 
 export interface TeamStanding {
   teamId: string
@@ -12,9 +14,12 @@ export interface TeamStanding {
   ga: number
   gd: number
   points: number
+  /** FIFA fair-play conduct (higher = fewer cards). */
+  fairPlay: number
 }
 
 export type GroupScores = Record<number, { home: number | null; away: number | null }>
+export type GroupDiscipline = Record<number, MatchDiscipline>
 
 /** Map schedule display name → team id */
 function normalizeTeamName(name: string): string {
@@ -39,12 +44,12 @@ const TEAM_NAME_ALIASES: Record<string, string> = {
   'congo dr': 'dr congo',
 }
 
-function canonicalTeamName(name: string): string {
+export function canonicalTeamName(name: string): string {
   const n = normalizeTeamName(name)
   return TEAM_NAME_ALIASES[n] ?? n
 }
 
-function resolveTeamId(name: string, overrides: Record<string, string>): string | undefined {
+export function resolveTeamId(name: string, overrides: Record<string, string>): string | undefined {
   // Check override first (scheduleDisplayName → teamId)
   if (overrides[name]) return overrides[name]
   // Exact name match
@@ -62,17 +67,22 @@ export function getGroupMatches(groupKey: GroupKey) {
 export function computeStandings(
   groupKey: GroupKey,
   scores: GroupScores,
-  nameToId: Record<string, string> = {}
+  nameToId: Record<string, string> = {},
+  discipline: GroupDiscipline = {},
+  teamConduct: Record<string, number> = {},
 ): TeamStanding[] {
   const groupMatches = getGroupMatches(groupKey)
   const rows = new Map<string, TeamStanding>()
+  const disciplineByTeam = new Map<string, TeamDiscipline[]>()
 
   for (const team of TEAMS.filter(t => t.group === groupKey)) {
-    rows.set(team.id, { teamId: team.id, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 })
+    rows.set(team.id, { teamId: team.id, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0, fairPlay: 0 })
+    disciplineByTeam.set(team.id, [])
   }
 
   for (const match of groupMatches) {
     const score = scores[match.matchNumber]
+    const cards = discipline[match.matchNumber] ?? EMPTY_MATCH_DISCIPLINE
     if (score?.home == null || score?.away == null) continue
 
     const homeId = resolveTeamId(match.homeTeam, nameToId)
@@ -82,6 +92,9 @@ export function computeStandings(
     const home = rows.get(homeId)
     const away = rows.get(awayId)
     if (!home || !away) continue
+
+    disciplineByTeam.get(homeId)!.push(cards.home)
+    disciplineByTeam.get(awayId)!.push(cards.away)
 
     const h = score.home
     const a = score.away
@@ -95,8 +108,11 @@ export function computeStandings(
     else            { home.drawn++; home.points  += 1; away.drawn++; away.points += 1 }
   }
 
-  // Recompute GD
-  for (const r of rows.values()) r.gd = r.gf - r.ga
+  // Recompute GD and fair play
+  for (const r of rows.values()) {
+    r.gd = r.gf - r.ga
+    r.fairPlay = teamConduct[r.teamId] ?? totalConduct(disciplineByTeam.get(r.teamId) ?? [])
+  }
 
   const allTeams = [...rows.values()]
 
@@ -126,7 +142,7 @@ export function computeStandings(
   function sortGroup(teams: TeamStanding[]): TeamStanding[] {
     if (teams.length <= 1) return teams
 
-    // Sort by overall: points → GD → GF
+    // FIFA step 1: overall points → GD → GF (fair play comes after head-to-head)
     const sorted = [...teams].sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points
       if (b.gd     !== a.gd)     return b.gd     - a.gd
@@ -134,7 +150,6 @@ export function computeStandings(
       return 0
     })
 
-    // Break ties using head-to-head, group by group
     const result: TeamStanding[] = []
     let i = 0
     while (i < sorted.length) {
@@ -150,7 +165,7 @@ export function computeStandings(
       if (tiedGroup.length === 1) {
         result.push(tiedGroup[0])
       } else {
-        // Apply H2H tiebreaker within the tied group
+        // FIFA step 2: head-to-head among tied teams, then fair play
         const ids = tiedGroup.map(t => t.teamId)
         const h = h2h(ids)
         tiedGroup.sort((a, b) => {
@@ -158,6 +173,7 @@ export function computeStandings(
           if (hb.pts !== ha.pts) return hb.pts - ha.pts
           if (hb.gd  !== ha.gd)  return hb.gd  - ha.gd
           if (hb.gf  !== ha.gf)  return hb.gf  - ha.gf
+          if (b.fairPlay !== a.fairPlay) return b.fairPlay - a.fairPlay
           return a.teamId.localeCompare(b.teamId)
         })
         result.push(...tiedGroup)

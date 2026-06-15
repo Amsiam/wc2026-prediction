@@ -10,7 +10,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "sync-results": "npx tsx scripts/sync-wc-results.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",

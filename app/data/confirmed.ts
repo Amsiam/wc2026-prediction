@@ -1,4 +1,5 @@
 import type { GroupKey, MatchId } from './teams'
+import type { MatchDiscipline } from '../lib/fairPlay'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Update these as the tournament progresses.
@@ -27,6 +28,11 @@ export const CONFIRMED_SCORES: Record<number, { home: number; away: number }> = 
   // 1: { home: 2, away: 0 },  // M1: Mexico 2-0 South Africa
 }
 
+/** Official cards / fair-play per match (yellows + red type per side). */
+export const CONFIRMED_DISCIPLINE: Record<number, MatchDiscipline> = {
+  // 1: { home: { yellows: 1, red: 'none' }, away: { yellows: 2, red: 'none' } },
+}
+
 // ── Helpers used by store and UI ─────────────────────────────────────────────
 
 export function isGroupFieldLocked(group: GroupKey, field: 'first' | 'second' | 'third'): boolean {
@@ -39,4 +45,8 @@ export function isMatchLocked(matchId: MatchId): boolean {
 
 export function isScoreLocked(matchNumber: number): boolean {
   return CONFIRMED_SCORES[matchNumber] !== undefined
+}
+
+export function isDisciplineLocked(matchNumber: number): boolean {
+  return CONFIRMED_DISCIPLINE[matchNumber] !== undefined
 }

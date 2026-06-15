@@ -1,0 +1,34 @@
+name: Sync WC results
+
+on:
+  schedule:
+    # Every 4 hours (UTC)
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Fetch latest scores
+        run: npm run sync-results
+
+      - name: Commit updated results
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore: sync WC 2026 match results'
+          file_pattern: app/data/liveResults.ts
+          commit_user_name: github-actions[bot]
+          commit_user_email: github-actions[bot]@users.noreply.github.com

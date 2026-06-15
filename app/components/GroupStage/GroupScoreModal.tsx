@@ -4,8 +4,17 @@ import { groupScoreStore } from '../../store/groupScoreStore'
 import { bracketStore } from '../../store/bracketStore'
 import { getGroupMatches, computeStandings, isGroupComplete } from '../../lib/standings'
 import { getGroup, TEAMS } from '../../data/teams'
-import { isScoreLocked } from '../../data/confirmed'
+import { isDisciplineLocked, isScoreLocked } from '../../data/confirmed'
+import type { RedCardType } from '../../lib/fairPlay'
+import { EMPTY_MATCH_DISCIPLINE } from '../../lib/fairPlay'
 import type { GroupKey } from '../../data/teams'
+
+const RED_OPTIONS: { value: RedCardType; label: string }[] = [
+  { value: 'none', label: '—' },
+  { value: 'second_yellow', label: '2nd Y' },
+  { value: 'direct', label: 'Red' },
+  { value: 'yellow_and_direct', label: 'Y+R' },
+]
 
 interface Props {
   groupKey: GroupKey
@@ -13,9 +22,11 @@ interface Props {
 }
 
 export function GroupScoreModal({ groupKey, onClose }: Props) {
-  const scores    = useStore(groupScoreStore, s => s.scores)
-  const overrides = useStore(groupScoreStore, s => s.overrides)
-  const { setScore, setOverride } = groupScoreStore.getState()
+  const scores      = useStore(groupScoreStore, s => s.scores)
+  const discipline  = useStore(groupScoreStore, s => s.discipline)
+  const teamConduct = useStore(groupScoreStore, s => s.teamConduct)
+  const overrides   = useStore(groupScoreStore, s => s.overrides)
+  const { setScore, setDiscipline, setOverride } = groupScoreStore.getState()
   const matches = getGroupMatches(groupKey)
   const teams   = getGroup(groupKey)
 
@@ -37,13 +48,29 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
     if (ov) nameToId[ov.name] = team.id
   }
 
-  const standings  = computeStandings(groupKey, scores, nameToId)
+  const standings  = computeStandings(groupKey, scores, nameToId, discipline, teamConduct)
   const complete   = isGroupComplete(groupKey, scores)
 
   function handleScoreChange(matchNumber: number, side: 'home' | 'away', raw: string) {
     const val  = raw === '' ? null : Math.max(0, Math.min(30, parseInt(raw) || 0))
     const prev = scores[matchNumber] ?? { home: null, away: null }
     setScore(matchNumber, side === 'home' ? val : prev.home, side === 'away' ? val : prev.away)
+  }
+
+  function handleDisciplineChange(
+    matchNumber: number,
+    side: 'home' | 'away',
+    field: 'yellows' | 'red',
+    value: string,
+  ) {
+    const prev = discipline[matchNumber] ?? EMPTY_MATCH_DISCIPLINE
+    const sideData = { ...prev[side] }
+    if (field === 'yellows') {
+      sideData.yellows = Math.max(0, Math.min(10, parseInt(value) || 0))
+    } else {
+      sideData.red = value as RedCardType
+    }
+    setDiscipline(matchNumber, { ...prev, [side]: sideData })
   }
 
   function applyStandingsToStore() {
@@ -130,15 +157,17 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
 
         {/* Match score inputs */}
         <div className="px-5 py-3 border-b border-gray-800">
-          <p className="text-xs text-gray-500 mb-2">Match results:</p>
+          <p className="text-xs text-gray-500 mb-2">Match results & cards (YC / red for fair play):</p>
           <div className="flex flex-col gap-2">
             {matches.map(m => {
               const score = scores[m.matchNumber] ?? { home: null, away: null }
+              const cards = discipline[m.matchNumber] ?? EMPTY_MATCH_DISCIPLINE
               const locked = isScoreLocked(m.matchNumber)
+              const cardsLocked = isDisciplineLocked(m.matchNumber)
               return (
-                <div key={m.matchNumber} className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500 w-8 text-right shrink-0">M{m.matchNumber}</span>
-                  <span className="flex-1 text-right truncate text-gray-200">{displayName(m.homeTeam)}</span>
+                <div key={m.matchNumber} className="flex items-center gap-1.5 text-xs">
+                  <span className="text-gray-500 w-7 text-right shrink-0">M{m.matchNumber}</span>
+                  <span className="w-[72px] truncate text-gray-200 text-right shrink-0">{displayName(m.homeTeam)}</span>
                   <input
                     type="number"
                     min={0}
@@ -146,9 +175,28 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
                     value={score.home ?? ''}
                     onChange={e => handleScoreChange(m.matchNumber, 'home', e.target.value)}
                     readOnly={locked}
-                    className={`w-12 text-center border rounded py-1 text-white ${locked ? 'bg-gray-700 border-gray-600 opacity-70 cursor-not-allowed' : 'bg-gray-800 border-gray-700'}`}
+                    className={`w-9 text-center border rounded py-1 text-white ${locked ? 'bg-gray-700 border-gray-600 opacity-70' : 'bg-gray-800 border-gray-700'}`}
                     placeholder="—"
                   />
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    title="Home yellow cards"
+                    value={cards.home.yellows || ''}
+                    onChange={e => handleDisciplineChange(m.matchNumber, 'home', 'yellows', e.target.value)}
+                    readOnly={cardsLocked}
+                    className={`w-8 text-center border rounded py-1 text-amber-200 ${cardsLocked ? 'bg-gray-700 border-gray-600 opacity-70' : 'bg-gray-800 border-gray-700'}`}
+                    placeholder="Y"
+                  />
+                  <select
+                    value={cards.home.red}
+                    onChange={e => handleDisciplineChange(m.matchNumber, 'home', 'red', e.target.value)}
+                    disabled={cardsLocked}
+                    className={`w-14 border rounded py-1 text-white text-[10px] ${cardsLocked ? 'bg-gray-700 border-gray-600 opacity-70' : 'bg-gray-800 border-gray-700'}`}
+                  >
+                    {RED_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
                   <span className="text-gray-500">{locked ? '🔒' : '–'}</span>
                   <input
                     type="number"
@@ -157,10 +205,29 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
                     value={score.away ?? ''}
                     onChange={e => handleScoreChange(m.matchNumber, 'away', e.target.value)}
                     readOnly={locked}
-                    className={`w-12 text-center border rounded py-1 text-white ${locked ? 'bg-gray-700 border-gray-600 opacity-70 cursor-not-allowed' : 'bg-gray-800 border-gray-700'}`}
+                    className={`w-9 text-center border rounded py-1 text-white ${locked ? 'bg-gray-700 border-gray-600 opacity-70' : 'bg-gray-800 border-gray-700'}`}
                     placeholder="—"
                   />
-                  <span className="flex-1 truncate text-gray-200">{displayName(m.awayTeam)}</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    title="Away yellow cards"
+                    value={cards.away.yellows || ''}
+                    onChange={e => handleDisciplineChange(m.matchNumber, 'away', 'yellows', e.target.value)}
+                    readOnly={cardsLocked}
+                    className={`w-8 text-center border rounded py-1 text-amber-200 ${cardsLocked ? 'bg-gray-700 border-gray-600 opacity-70' : 'bg-gray-800 border-gray-700'}`}
+                    placeholder="Y"
+                  />
+                  <select
+                    value={cards.away.red}
+                    onChange={e => handleDisciplineChange(m.matchNumber, 'away', 'red', e.target.value)}
+                    disabled={cardsLocked}
+                    className={`w-14 border rounded py-1 text-white text-[10px] ${cardsLocked ? 'bg-gray-700 border-gray-600 opacity-70' : 'bg-gray-800 border-gray-700'}`}
+                  >
+                    {RED_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                  <span className="w-[72px] truncate text-gray-200 shrink-0">{displayName(m.awayTeam)}</span>
                 </div>
               )
             })}
@@ -179,7 +246,10 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
                 <th className="text-right w-8">W</th>
                 <th className="text-right w-8">D</th>
                 <th className="text-right w-8">L</th>
+                <th className="text-right w-8">GF</th>
+                <th className="text-right w-8">GA</th>
                 <th className="text-right w-10">GD</th>
+                <th className="text-right w-10" title="Fair play conduct (higher = better)">FP</th>
                 <th className="text-right w-10 font-bold">Pts</th>
               </tr>
             </thead>
@@ -198,7 +268,10 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
                     <td className="text-right">{row.won}</td>
                     <td className="text-right">{row.drawn}</td>
                     <td className="text-right">{row.lost}</td>
+                    <td className="text-right">{row.gf}</td>
+                    <td className="text-right">{row.ga}</td>
                     <td className="text-right">{row.gd > 0 ? '+' : ''}{row.gd}</td>
+                    <td className="text-right">{row.fairPlay}</td>
                     <td className="text-right font-bold">{row.points}</td>
                   </tr>
                 )

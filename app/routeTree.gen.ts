@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as PredictorRouteImport } from './routes/predictor'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiWcResultsRouteImport } from './routes/api/wc-results'
 
 const ScheduleRoute = ScheduleRouteImport.update({
   id: '/schedule',
@@ -28,35 +29,44 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWcResultsRoute = ApiWcResultsRouteImport.update({
+  id: '/api/wc-results',
+  path: '/api/wc-results',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/predictor': typeof PredictorRoute
   '/schedule': typeof ScheduleRoute
+  '/api/wc-results': typeof ApiWcResultsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/predictor': typeof PredictorRoute
   '/schedule': typeof ScheduleRoute
+  '/api/wc-results': typeof ApiWcResultsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/predictor': typeof PredictorRoute
   '/schedule': typeof ScheduleRoute
+  '/api/wc-results': typeof ApiWcResultsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/predictor' | '/schedule'
+  fullPaths: '/' | '/predictor' | '/schedule' | '/api/wc-results'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/predictor' | '/schedule'
-  id: '__root__' | '/' | '/predictor' | '/schedule'
+  to: '/' | '/predictor' | '/schedule' | '/api/wc-results'
+  id: '__root__' | '/' | '/predictor' | '/schedule' | '/api/wc-results'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   PredictorRoute: typeof PredictorRoute
   ScheduleRoute: typeof ScheduleRoute
+  ApiWcResultsRoute: typeof ApiWcResultsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/wc-results': {
+      id: '/api/wc-results'
+      path: '/api/wc-results'
+      fullPath: '/api/wc-results'
+      preLoaderRoute: typeof ApiWcResultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   PredictorRoute: PredictorRoute,
   ScheduleRoute: ScheduleRoute,
+  ApiWcResultsRoute: ApiWcResultsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
