@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { useStore } from 'zustand'
 import { groupScoreStore } from '../../store/groupScoreStore'
-import { bracketStore } from '../../store/bracketStore'
-import { getGroupMatches, computeStandings, isGroupComplete } from '../../lib/standings'
+import { getGroupMatches, computeStandings } from '../../lib/standings'
 import { getGroup, TEAMS } from '../../data/teams'
 import { isDisciplineLocked, isScoreLocked } from '../../data/confirmed'
 import type { RedCardType } from '../../lib/fairPlay'
 import { EMPTY_MATCH_DISCIPLINE } from '../../lib/fairPlay'
 import type { GroupKey } from '../../data/teams'
+import { StandingsRankLegend } from './StandingsRankLegend'
 
 const RED_OPTIONS: { value: RedCardType; label: string }[] = [
   { value: 'none', label: '—' },
@@ -49,7 +49,6 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
   }
 
   const standings  = computeStandings(groupKey, scores, nameToId, discipline, teamConduct)
-  const complete   = isGroupComplete(groupKey, scores)
 
   function handleScoreChange(matchNumber: number, side: 'home' | 'away', raw: string) {
     const val  = raw === '' ? null : Math.max(0, Math.min(30, parseInt(raw) || 0))
@@ -71,15 +70,6 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
       sideData.red = value as RedCardType
     }
     setDiscipline(matchNumber, { ...prev, [side]: sideData })
-  }
-
-  function applyStandingsToStore() {
-    if (!complete) return
-    const store = bracketStore.getState()
-    store.setGroupFirst(groupKey,  standings[0]?.teamId ?? null)
-    store.setGroupSecond(groupKey, standings[1]?.teamId ?? null)
-    store.setGroupThird(groupKey,  standings[2]?.teamId ?? null)
-    onClose()
   }
 
   function startEdit(teamId: string) {
@@ -236,7 +226,10 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
 
         {/* Live standings */}
         <div className="px-5 py-3 border-b border-gray-800">
-          <p className="text-xs text-gray-500 mb-2">Standings:</p>
+          <div className="flex flex-wrap items-baseline justify-between gap-2 mb-2">
+            <p className="text-xs text-gray-500">Standings:</p>
+            <StandingsRankLegend />
+          </div>
           <table className="w-full text-xs">
             <thead>
               <tr className="text-gray-500">
@@ -283,21 +276,10 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
         {/* Footer */}
         <div className="px-5 py-4 flex justify-end gap-3">
           <button
-            className="px-4 py-2 rounded text-sm text-gray-400 hover:text-white"
+            className="px-4 py-2 rounded text-sm font-semibold bg-green-700 hover:bg-green-600 text-white"
             onClick={onClose}
           >
-            Cancel
-          </button>
-          <button
-            className={`px-4 py-2 rounded text-sm font-semibold ${
-              complete
-                ? 'bg-green-700 hover:bg-green-600 text-white'
-                : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-            }`}
-            onClick={applyStandingsToStore}
-            disabled={!complete}
-          >
-            {complete ? 'Apply Results to Bracket' : 'Enter all scores first'}
+            Done
           </button>
         </div>
       </div>

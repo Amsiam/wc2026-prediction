@@ -10,6 +10,7 @@ import { getShareableUrl } from '../hooks/usePersistence'
 import { ShareMenu } from './ShareMenu'
 import { SyncResultsButton } from './SyncResultsButton'
 import { useStore } from 'zustand'
+import '../lib/syncBracketFromStandings'
 
 type Tab = 'groups' | 'knockout'
 

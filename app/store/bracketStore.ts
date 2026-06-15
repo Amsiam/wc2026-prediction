@@ -2,6 +2,7 @@ import { createStore } from 'zustand/vanilla'
 import { EMPTY_STATE } from '../lib/encoding'
 import { getMatchLoser, isFeederOfMatch } from '../lib/bracket'
 import { BRACKET_TREE } from '../data/teams'
+import { GROUPS } from '../data/teams'
 import { CONFIRMED_GROUPS, CONFIRMED_MATCHES, isGroupFieldLocked, isMatchLocked } from '../data/confirmed'
 import { resolveThirdSlots, THIRD_PLACE_SCENARIOS } from '../data/thirdPlaceScenarios'
 import type { BracketState, TeamId } from './types'
@@ -13,6 +14,13 @@ export interface BracketActions {
   setGroupThird: (group: GroupKey, teamId: TeamId | null) => void
   setGroupThirdSlot: (group: GroupKey, matchId: MatchId | null) => void
   setThirdRank: (group: GroupKey, rank: number | null) => void
+  /** Batch-update qualification slots from live standings (respects confirmed locks). */
+  applyGroupQualifiersFromStandings: (updates: Partial<Record<GroupKey, {
+    first?: TeamId | null
+    second?: TeamId | null
+    third?: TeamId | null
+    thirdRank?: number | null
+  }>>) => void
   clearTeam: (teamId: TeamId) => void
   setMatchWinner: (matchId: MatchId, teamId: TeamId | null) => void
   backfillPath: (matchId: MatchId, teamId: TeamId, side: 'home' | 'away') => void
@@ -258,6 +266,31 @@ export function createBracketStore() {
       set(s => ({
         groups: { ...s.groups, [group]: { ...s.groups[group], thirdRank: rank } },
       })),
+
+    applyGroupQualifiersFromStandings: (updates) =>
+      set(s => {
+        let groups = { ...s.groups } as BracketState['groups']
+        for (const g of GROUPS) {
+          const u = updates[g]
+          if (!u) continue
+          const cur = groups[g]
+          groups[g] = {
+            ...cur,
+            first: isGroupFieldLocked(g, 'first') ? cur.first : (u.first !== undefined ? u.first : cur.first),
+            second: isGroupFieldLocked(g, 'second') ? cur.second : (u.second !== undefined ? u.second : cur.second),
+            third: isGroupFieldLocked(g, 'third') ? cur.third : (u.third !== undefined ? u.third : cur.third),
+            thirdRank: u.thirdRank !== undefined ? u.thirdRank : cur.thirdRank,
+            thirdSlot: isGroupFieldLocked(g, 'third')
+              ? cur.thirdSlot
+              : u.third === null
+                ? null
+                : u.third !== undefined
+                  ? cur.thirdSlot
+                  : cur.thirdSlot,
+          }
+        }
+        return { groups: applyThirdSlots(groups) }
+      }),
 
     setMatchWinner: (matchId, teamId) => {
       if (isMatchLocked(matchId)) return

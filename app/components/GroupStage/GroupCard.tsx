@@ -14,8 +14,10 @@ export function GroupCard({ groupKey }: Props) {
   const filledThirdCount = useStore(bracketStore, s =>
     Object.values(s.groups).filter(g => g.third !== null).length
   )
-  const scores   = useStore(groupScoreStore, s => s.scores)
-  const overrides = useStore(groupScoreStore, s => s.overrides)
+  const scores      = useStore(groupScoreStore, s => s.scores)
+  const discipline  = useStore(groupScoreStore, s => s.discipline)
+  const teamConduct = useStore(groupScoreStore, s => s.teamConduct)
+  const overrides   = useStore(groupScoreStore, s => s.overrides)
   const activeModal = useStore(groupScoreStore, s => s.activeGroupModal)
   const { setGroupFirst, setGroupSecond, setGroupThird, setThirdRank } = bracketStore.getState()
   const showScores = activeModal === groupKey
@@ -27,13 +29,12 @@ export function GroupCard({ groupKey }: Props) {
     if (ov) nameToId[ov.name] = team.id
   }
 
-  const standings = computeStandings(groupKey, scores, nameToId)
+  const standings = computeStandings(groupKey, scores, nameToId, discipline, teamConduct)
   const complete  = isGroupComplete(groupKey, scores)
   const matchNums = getGroupMatches(groupKey).map(m => m.matchNumber)
   const hasAnyScore = matchNums.some(n => scores[n]?.home != null || scores[n]?.away != null)
 
   function handleTeamClick(teamId: string) {
-    if (complete) return  // standings-driven; don't allow manual override when scores set
     if (pick.first === teamId)  { setGroupFirst(groupKey, null); return }
     if (pick.second === teamId) { setGroupSecond(groupKey, null); return }
     if (pick.third === teamId)  { setGroupThird(groupKey, null); return }
@@ -72,23 +73,37 @@ export function GroupCard({ groupKey }: Props) {
           </div>
         </div>
 
-        {complete ? (
-          /* Standings-driven mode: show ranked list */
+        {hasAnyScore ? (
+          /* Standings-driven with manual override */
           <div className="space-y-1 mb-3">
             {standings.map((row, i) => {
               const team = teams.find(t => t.id === row.teamId)
               const ov   = overrides[row.teamId]
-              const pos  = i === 0 ? 'text-yellow-400 bg-yellow-900/30' :
-                           i === 1 ? 'text-blue-400 bg-blue-900/30' :
-                           i === 2 ? 'text-green-400 bg-green-900/20' : 'text-gray-500'
+              const isFirst  = pick.first  === row.teamId
+              const isSecond = pick.second === row.teamId
+              const isThird  = pick.third  === row.teamId
+              const pos  = i === 0 ? 'text-yellow-400' :
+                           i === 1 ? 'text-blue-400' :
+                           i === 2 ? 'text-green-400' : 'text-gray-500'
+              const highlight = isFirst  ? 'bg-yellow-900/40 ring-1 ring-yellow-600/50' :
+                                isSecond ? 'bg-blue-900/40 ring-1 ring-blue-600/50' :
+                                isThird  ? 'bg-green-900/30 ring-1 ring-green-700/50' : 'hover:bg-gray-800'
               return (
-                <div key={row.teamId} className={`flex items-center gap-2 px-3 py-1.5 rounded text-sm ${pos}`}>
+                <button
+                  type="button"
+                  key={row.teamId}
+                  onClick={() => handleTeamClick(row.teamId)}
+                  className={`w-full flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${pos} ${highlight}`}
+                >
                   <span className="w-4 text-xs opacity-60">{i + 1}</span>
                   <span className={`fi fi-${ov?.flagCode ?? team?.flagCode}`} />
-                  <span className="flex-1">{ov?.name ?? team?.name}</span>
+                  <span className="flex-1 text-left">{ov?.name ?? team?.name}</span>
                   <span className="text-xs opacity-75 font-bold">{row.points}pts</span>
                   <span className="text-xs opacity-50">{row.gd > 0 ? '+' : ''}{row.gd}</span>
-                </div>
+                  {isFirst  && <span className="text-xs opacity-75">1st</span>}
+                  {isSecond && <span className="text-xs opacity-75">2nd</span>}
+                  {isThird  && <span className="text-xs opacity-75">3rd</span>}
+                </button>
               )
             })}
           </div>

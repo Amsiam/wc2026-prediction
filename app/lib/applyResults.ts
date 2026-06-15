@@ -1,6 +1,7 @@
 import { bracketStore } from '../store/bracketStore'
 import { groupScoreStore } from '../store/groupScoreStore'
 import { isMatchLocked } from '../data/confirmed'
+import { syncBracketFromStandings } from './syncBracketFromStandings'
 import type { MatchId } from '../data/teams'
 import type { FetchedResults } from './fetchResults'
 
@@ -10,6 +11,8 @@ export function applyFetchedResults(data: FetchedResults): void {
     discipline: data.discipline,
     teamConduct: data.teamConduct,
   })
+
+  syncBracketFromStandings()
 
   for (const [matchId, winner] of Object.entries(data.knockout ?? {})) {
     const id = matchId as MatchId
