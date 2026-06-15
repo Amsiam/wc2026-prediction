@@ -139,11 +139,13 @@ export function GroupCard({ groupKey }: Props) {
           </div>
         )}
 
-        {!complete && pick.third && (
+        {pick.third && (
           <div className="text-xs text-gray-500 mt-1">
             {pick.thirdSlot
-              ? <span className="text-green-500">✓ Slot auto-assigned</span>
-              : <span>Select 3rd place in 8 groups to auto-assign R32 slot</span>
+              ? <span className="text-green-500">✓ R32 slot auto-assigned</span>
+              : filledThirdCount < 8
+                ? <span>R32 slot pending — {filledThirdCount}/8 third-place groups set</span>
+                : <span>R32 slot unresolved — adjust 3rd-place picks</span>
             }
           </div>
         )}
