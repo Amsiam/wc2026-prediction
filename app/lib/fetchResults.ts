@@ -69,6 +69,8 @@ function findScheduleMatch(team1: string, team2: string, group?: string, num?: n
 }
 
 function teamIdFromName(name: string): string | undefined {
+  const direct = resolveTeamId(name, {})
+  if (direct) return direct
   const scheduleName = scheduleNameForSource(name)
   if (!scheduleName) return undefined
   return resolveTeamId(scheduleName, {})
@@ -114,7 +116,7 @@ async function fetchOpenFootball(): Promise<Pick<FetchedResults, 'scores' | 'dis
 function decodeHtmlEntities(text: string): string {
   return text
     .replace(/&#160;|&nbsp;/g, ' ')
-    .replace(/&minus;|−/g, '-')
+    .replace(/&minus;|&ndash;|&mdash;|−|–|—/g, '-')
 }
 
 function extractTeamName(cellHtml: string): string {
@@ -199,7 +201,7 @@ function parseGroupFairPlayHtml(html: string): Record<string, number> {
     if (cells.length <= fpIdx) continue
 
     const teamText = extractTeamName(cells[1] ?? cells[0])
-    const fpRaw = cells[fpIdx].replace(/<[^>]+>/g, '').trim().replace(/−/g, '-').replace(/\+/g, '')
+    const fpRaw = decodeHtmlEntities(cells[fpIdx].replace(/<[^>]+>/g, '').trim()).replace(/\+/g, '')
     const fp = parseInt(fpRaw, 10)
     if (!teamText || Number.isNaN(fp)) continue
 
@@ -212,18 +214,26 @@ function parseGroupFairPlayHtml(html: string): Record<string, number> {
 
 const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms))
 
-async function fetchWikipediaPageHtml(page: string): Promise<string> {
+async function fetchWikipediaPageHtml(page: string, retries = 3): Promise<string> {
   const url = `https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(page)}&prop=text&format=json`
-  const res = await fetch(url, { headers: { 'User-Agent': WIKI_USER_AGENT } })
-  if (!res.ok) return ''
-  const body = await res.text()
-  try {
-    const json = JSON.parse(body) as { parse?: { text?: string | { '*': string } } }
-    const raw = json.parse?.text
-    return typeof raw === 'string' ? raw : raw?.['*'] ?? ''
-  } catch {
-    return ''
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const res = await fetch(url, { headers: { 'User-Agent': WIKI_USER_AGENT } })
+    if (!res.ok) {
+      if (attempt < retries - 1) await sleep(800 * (attempt + 1))
+      continue
+    }
+    const body = await res.text()
+    try {
+      const json = JSON.parse(body) as { parse?: { text?: string | { '*': string } } }
+      const raw = json.parse?.text
+      const html = typeof raw === 'string' ? raw : raw?.['*'] ?? ''
+      if (html) return html
+    } catch {
+      // retry
+    }
+    if (attempt < retries - 1) await sleep(800 * (attempt + 1))
   }
+  return ''
 }
 
 async function fetchWikipediaFairPlay(): Promise<Record<string, number>> {
@@ -237,7 +247,7 @@ async function fetchWikipediaFairPlay(): Promise<Record<string, number>> {
     } catch {
       // Wikipedia optional — scores still work without it
     }
-    await sleep(250)
+    await sleep(600)
   }
 
   return conduct

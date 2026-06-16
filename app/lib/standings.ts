@@ -1,6 +1,7 @@
 import { SCHEDULE } from '../data/schedule'
 import { TEAMS } from '../data/teams'
 import type { GroupKey } from '../data/teams'
+import { compareFifaRanking } from '../data/fifaRankings'
 import type { MatchDiscipline, TeamDiscipline } from './fairPlay'
 import { EMPTY_MATCH_DISCIPLINE, totalConduct } from './fairPlay'
 
@@ -41,6 +42,7 @@ const TEAM_NAME_ALIASES: Record<string, string> = {
   'bosnia and herzegovina': 'bosnia herzegovina',
   'cote divoire': 'ivory coast',
   'cape verde': 'cabo verde',
+  'ir iran': 'iran',
   'congo dr': 'dr congo',
 }
 
@@ -174,6 +176,8 @@ export function computeStandings(
           if (hb.gd  !== ha.gd)  return hb.gd  - ha.gd
           if (hb.gf  !== ha.gf)  return hb.gf  - ha.gf
           if (b.fairPlay !== a.fairPlay) return b.fairPlay - a.fairPlay
+          const fifaCmp = compareFifaRanking(a.teamId, b.teamId)
+          if (fifaCmp !== 0) return fifaCmp
           return a.teamId.localeCompare(b.teamId)
         })
         result.push(...tiedGroup)

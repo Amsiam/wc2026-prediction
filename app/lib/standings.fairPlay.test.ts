@@ -62,4 +62,24 @@ describe('standings fair play', () => {
     const standings = computeStandings('B', scores, {}, {}, conduct)
     expect(standings.map(s => s.teamId)).toEqual(['SUI', 'CAN', 'QAT', 'BIH'])
   })
+
+  it('resolves IR Iran schedule name and ranks Group G after MD1', () => {
+    const scores = {
+      15: { home: 2, away: 2 },  // IR Iran v New Zealand
+      16: { home: 1, away: 1 },  // Belgium v Egypt
+    }
+    const conduct = { NZL: 0, IRN: -1, BEL: -2, EGY: -2 }
+    const standings = computeStandings('G', scores, {}, {}, conduct)
+    expect(standings.map(s => s.teamId)).toEqual(['NZL', 'IRN', 'BEL', 'EGY'])
+  })
+
+  it('ranks Group H after MD1 with fair play among tied pairs', () => {
+    const scores = {
+      13: { home: 1, away: 1 },  // Saudi Arabia v Uruguay
+      14: { home: 0, away: 0 },  // Spain v Cabo Verde
+    }
+    const conduct = { URU: 0, SAU: -1, ESP: -1, CPV: -1 }
+    const standings = computeStandings('H', scores, {}, {}, conduct)
+    expect(standings.map(s => s.teamId)).toEqual(['URU', 'SAU', 'ESP', 'CPV'])
+  })
 })

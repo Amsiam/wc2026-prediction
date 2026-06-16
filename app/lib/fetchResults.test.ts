@@ -24,6 +24,18 @@ const GROUP_B_DISCIPLINE_HTML = `
 </table>
 `
 
+// Wikipedia Group G uses en-dash (–) in score cells, not minus sign (−)
+const GROUP_G_DISCIPLINE_HTML = `
+<h2><span class="mw-headline" id="Discipline">Discipline</span></h2>
+<table class="wikitable">
+<tr><th>Team</th><th>Match 1</th><th>Match 2</th><th>Match 3</th><th>Score</th></tr>
+<tr><td><a title="New Zealand men's national football team">New Zealand</a></td><td></td><td></td><td></td><td>0</td></tr>
+<tr><td><a title="Iran national football team">Iran</a></td><td>1</td><td></td><td></td><td>–1</td></tr>
+<tr><td><a title="Belgium national football team">Belgium</a></td><td>2</td><td></td><td></td><td>–2</td></tr>
+<tr><td><a title="Egypt national football team">Egypt</a></td><td>2</td><td></td><td></td><td>–2</td></tr>
+</table>
+`
+
 // Import parser by duplicating minimal test - actually test via fetchWorldCupResults mock
 // We'll export parseDisciplineSection for test - or test through internal module
 
@@ -32,5 +44,11 @@ describe('Wikipedia discipline parsing', () => {
     const { parseDisciplineSectionForTest } = await import('./fetchResults')
     const conduct = parseDisciplineSectionForTest(GROUP_B_DISCIPLINE_HTML)
     expect(conduct).toEqual({ SUI: -1, CAN: -2, QAT: -2, BIH: -3 })
+  })
+
+  it('parses en-dash negative fair play scores (Wikipedia Group G)', async () => {
+    const { parseDisciplineSectionForTest } = await import('./fetchResults')
+    const conduct = parseDisciplineSectionForTest(GROUP_G_DISCIPLINE_HTML)
+    expect(conduct).toEqual({ NZL: 0, IRN: -1, BEL: -2, EGY: -2 })
   })
 })
