@@ -52,9 +52,17 @@ export const LIVE_RESULTS = {
     "home": 5,
     "away": 1
   },
+  "13": {
+    "home": 1,
+    "away": 1
+  },
   "14": {
     "home": 0,
     "away": 0
+  },
+  "15": {
+    "home": 2,
+    "away": 2
   },
   "16": {
     "home": 1,
@@ -182,7 +190,27 @@ export const LIVE_RESULTS = {
       "red": "none"
     }
   },
+  "13": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
   "14": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "15": {
     "home": {
       "yellows": 0,
       "red": "none"
@@ -229,12 +257,11 @@ export const LIVE_RESULTS = {
   "SWE": 0,
   "TUN": -1,
   "NED": -3,
-  "IRN": 0,
   "NZL": 0,
-  "ESP": -1,
-  "CPV": -1,
-  "SAU": 0,
   "URU": 0,
+  "CPV": -1,
+  "SAU": -1,
+  "ESP": -1,
   "FRA": 0,
   "SEN": 0,
   "IRQ": 0,
@@ -244,6 +271,6 @@ export const LIVE_RESULTS = {
   "AUT": 0,
   "JOR": 0
 } as Record<string, number>,
-  syncedAt: "2026-06-15T22:24:43.831Z",
+  syncedAt: "2026-06-16T05:20:34.438Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
