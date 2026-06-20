@@ -116,6 +116,14 @@ export const LIVE_RESULTS = {
     "home": 1,
     "away": 0
   },
+  "29": {
+    "home": 3,
+    "away": 0
+  },
+  "30": {
+    "home": 0,
+    "away": 1
+  },
   "32": {
     "home": 2,
     "away": 0
@@ -402,6 +410,26 @@ export const LIVE_RESULTS = {
       "red": "none"
     }
   },
+  "29": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "30": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
   "32": {
     "home": {
       "yellows": 0,
@@ -423,13 +451,13 @@ export const LIVE_RESULTS = {
   "CAN": -3,
   "BIH": -9,
   "QAT": -11,
-  "MAR": 0,
-  "HAI": -1,
-  "BRA": -2,
-  "SCO": -3,
-  "AUS": 0,
+  "MAR": -1,
+  "BRA": -3,
+  "HAI": -4,
+  "SCO": -4,
   "TUR": -1,
-  "USA": -1,
+  "AUS": -4,
+  "USA": -4,
   "PAR": -5,
   "GER": 0,
   "CUW": 0,
@@ -454,16 +482,8 @@ export const LIVE_RESULTS = {
   "ARG": 0,
   "ALG": 0,
   "JOR": 0,
-  "AUT": -1,
-  "COL": -1,
-  "COD": -1,
-  "UZB": -1,
-  "POR": -3,
-  "ENG": 0,
-  "CRO": 0,
-  "GHA": -1,
-  "PAN": -2
+  "AUT": -1
 } as Record<string, number>,
-  syncedAt: "2026-06-19T21:15:06.809Z",
+  syncedAt: "2026-06-20T04:22:56.277Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
