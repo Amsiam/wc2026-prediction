@@ -1,9 +1,9 @@
 import { SCHEDULE } from '../data/schedule'
 import { TEAMS } from '../data/teams'
 import type { GroupKey } from '../data/teams'
-import { compareFifaRanking } from '../data/fifaRankings'
 import type { MatchDiscipline, TeamDiscipline } from './fairPlay'
 import { EMPTY_MATCH_DISCIPLINE, totalConduct } from './fairPlay'
+import { rankTeamsTiedOnPoints, type H2HStats } from './tiebreakers'
 
 export interface TeamStanding {
   teamId: string
@@ -119,7 +119,7 @@ export function computeStandings(
   const allTeams = [...rows.values()]
 
   // Head-to-head stats among a subset of tied teams
-  function h2h(teamIds: string[]): Map<string, { pts: number; gd: number; gf: number }> {
+  function h2h(teamIds: string[]): Map<string, H2HStats> {
     const h = new Map(teamIds.map(id => [id, { pts: 0, gd: 0, gf: 0 }]))
     const idSet = new Set(teamIds)
     for (const match of groupMatches) {
@@ -142,47 +142,21 @@ export function computeStandings(
   }
 
   function sortGroup(teams: TeamStanding[]): TeamStanding[] {
-    if (teams.length <= 1) return teams
-
-    // FIFA step 1: overall points → GD → GF (fair play comes after head-to-head)
-    const sorted = [...teams].sort((a, b) => {
-      if (b.points !== a.points) return b.points - a.points
-      if (b.gd     !== a.gd)     return b.gd     - a.gd
-      if (b.gf     !== a.gf)     return b.gf     - a.gf
-      return 0
-    })
+    const byPoints = new Map<number, TeamStanding[]>()
+    for (const t of teams) {
+      const bucket = byPoints.get(t.points) ?? []
+      bucket.push(t)
+      byPoints.set(t.points, bucket)
+    }
 
     const result: TeamStanding[] = []
-    let i = 0
-    while (i < sorted.length) {
-      let j = i + 1
-      while (
-        j < sorted.length &&
-        sorted[j].points === sorted[i].points &&
-        sorted[j].gd     === sorted[i].gd &&
-        sorted[j].gf     === sorted[i].gf
-      ) j++
-
-      const tiedGroup = sorted.slice(i, j)
-      if (tiedGroup.length === 1) {
-        result.push(tiedGroup[0])
+    for (const pts of [...byPoints.keys()].sort((a, b) => b - a)) {
+      const group = byPoints.get(pts)!
+      if (group.length === 1) {
+        result.push(group[0])
       } else {
-        // FIFA step 2: head-to-head among tied teams, then fair play
-        const ids = tiedGroup.map(t => t.teamId)
-        const h = h2h(ids)
-        tiedGroup.sort((a, b) => {
-          const ha = h.get(a.teamId)!, hb = h.get(b.teamId)!
-          if (hb.pts !== ha.pts) return hb.pts - ha.pts
-          if (hb.gd  !== ha.gd)  return hb.gd  - ha.gd
-          if (hb.gf  !== ha.gf)  return hb.gf  - ha.gf
-          if (b.fairPlay !== a.fairPlay) return b.fairPlay - a.fairPlay
-          const fifaCmp = compareFifaRanking(a.teamId, b.teamId)
-          if (fifaCmp !== 0) return fifaCmp
-          return a.teamId.localeCompare(b.teamId)
-        })
-        result.push(...tiedGroup)
+        result.push(...rankTeamsTiedOnPoints(group, h2h))
       }
-      i = j
     }
     return result
   }

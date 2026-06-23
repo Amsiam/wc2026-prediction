@@ -2,6 +2,7 @@ import { GROUPS, TEAMS, type GroupKey } from '../data/teams'
 import { bracketStore } from '../store/bracketStore'
 import { groupScoreStore } from '../store/groupScoreStore'
 import { computeStandings, getGroupMatches, type TeamStanding } from './standings'
+import { compareThirdPlaceStanding } from './tiebreakers'
 
 function buildNameToId(groupKey: GroupKey, overrides: Record<string, { name: string }>): Record<string, string> {
   const nameToId: Record<string, string> = {}
@@ -22,14 +23,6 @@ function groupHasPlayedScores(
   })
 }
 
-/** FIFA ranking among third-placed teams (group-stage stats only). */
-function compareThirdPlace(a: TeamStanding, b: TeamStanding): number {
-  if (b.points !== a.points) return b.points - a.points
-  if (b.gd !== a.gd) return b.gd - a.gd
-  if (b.gf !== a.gf) return b.gf - a.gf
-  if (b.fairPlay !== a.fairPlay) return b.fairPlay - a.fairPlay
-  return a.teamId.localeCompare(b.teamId)
-}
 
 /** Push current group standings into bracket qualification slots (1st / 2nd / best 8×3rd). */
 export function syncBracketFromStandings(): void {
@@ -67,7 +60,7 @@ export function syncBracketFromStandings(): void {
     }
   }
 
-  thirdCandidates.sort((a, b) => compareThirdPlace(a.standing, b.standing))
+  thirdCandidates.sort((a, b) => compareThirdPlaceStanding(a.standing, b.standing))
   thirdCandidates.forEach((c, i) => {
     const qualifies = i < 8
     updates[c.group] = {
