@@ -765,9 +765,9 @@ export const LIVE_RESULTS = {
 } as Record<number, MatchDiscipline>,
   knockout: {} as Partial<Record<MatchId, string>>,
   teamConduct: {
-  "CZE": -1,
-  "KOR": -3,
-  "MEX": -5,
+  "CZE": -2,
+  "KOR": -4,
+  "MEX": -6,
   "RSA": -12,
   "SUI": -3,
   "CAN": -5,
@@ -806,6 +806,6 @@ export const LIVE_RESULTS = {
   "ARG": -2,
   "AUT": -3
 } as Record<string, number>,
-  syncedAt: "2026-06-25T04:15:30.061Z",
+  syncedAt: "2026-06-25T10:49:54.885Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
