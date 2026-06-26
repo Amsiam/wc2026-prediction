@@ -243,6 +243,14 @@ export const LIVE_RESULTS = {
   "60": {
     "home": 0,
     "away": 0
+  },
+  "61": {
+    "home": 1,
+    "away": 4
+  },
+  "62": {
+    "home": 5,
+    "away": 0
   }
 } as Record<number, { home: number; away: number }>,
   discipline: {
@@ -845,6 +853,26 @@ export const LIVE_RESULTS = {
       "yellows": 0,
       "red": "none"
     }
+  },
+  "61": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "62": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
   }
 } as Record<number, MatchDiscipline>,
   knockout: {} as Partial<Record<MatchId, string>>,
@@ -881,15 +909,23 @@ export const LIVE_RESULTS = {
   "URU": -2,
   "CPV": -3,
   "SAU": -3,
-  "FRA": 0,
-  "SEN": 0,
-  "NOR": 0,
-  "IRQ": -2,
+  "FRA": -1,
+  "NOR": -1,
+  "SEN": -2,
+  "IRQ": -8,
   "ALG": -1,
   "JOR": -1,
   "ARG": -2,
-  "AUT": -3
+  "AUT": -3,
+  "COD": -2,
+  "UZB": -2,
+  "COL": -3,
+  "POR": -4,
+  "ENG": -1,
+  "CRO": -1,
+  "GHA": -2,
+  "PAN": -3
 } as Record<string, number>,
-  syncedAt: "2026-06-26T17:58:22.052Z",
+  syncedAt: "2026-06-26T21:25:07.414Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
