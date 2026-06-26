@@ -219,6 +219,30 @@ export const LIVE_RESULTS = {
   "54": {
     "home": 1,
     "away": 0
+  },
+  "55": {
+    "home": 0,
+    "away": 2
+  },
+  "56": {
+    "home": 2,
+    "away": 1
+  },
+  "57": {
+    "home": 1,
+    "away": 1
+  },
+  "58": {
+    "home": 1,
+    "away": 3
+  },
+  "59": {
+    "home": 3,
+    "away": 2
+  },
+  "60": {
+    "home": 0,
+    "away": 0
   }
 } as Record<number, { home: number; away: number }>,
   discipline: {
@@ -761,6 +785,66 @@ export const LIVE_RESULTS = {
       "yellows": 0,
       "red": "none"
     }
+  },
+  "55": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "56": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "57": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "58": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "59": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "60": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
   }
 } as Record<number, MatchDiscipline>,
   knockout: {} as Partial<Record<MatchId, string>>,
@@ -778,13 +862,13 @@ export const LIVE_RESULTS = {
   "SCO": -5,
   "HAI": -7,
   "TUR": -3,
-  "AUS": -4,
-  "USA": -4,
-  "PAR": -11,
-  "GER": 0,
-  "ECU": -2,
-  "CIV": -3,
-  "CUW": -5,
+  "AUS": -5,
+  "USA": -5,
+  "PAR": -12,
+  "GER": -1,
+  "CIV": -4,
+  "ECU": -5,
+  "CUW": -7,
   "JPN": 0,
   "TUN": -1,
   "NED": -3,
@@ -806,6 +890,6 @@ export const LIVE_RESULTS = {
   "ARG": -2,
   "AUT": -3
 } as Record<string, number>,
-  syncedAt: "2026-06-25T21:49:42.208Z",
+  syncedAt: "2026-06-26T04:21:59.092Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
