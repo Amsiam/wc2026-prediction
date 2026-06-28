@@ -267,6 +267,30 @@ export const LIVE_RESULTS = {
   "66": {
     "home": 0,
     "away": 1
+  },
+  "67": {
+    "home": 0,
+    "away": 2
+  },
+  "68": {
+    "home": 2,
+    "away": 1
+  },
+  "69": {
+    "home": 3,
+    "away": 3
+  },
+  "70": {
+    "home": 1,
+    "away": 3
+  },
+  "71": {
+    "home": 0,
+    "away": 0
+  },
+  "72": {
+    "home": 3,
+    "away": 1
   }
 } as Record<number, { home: number; away: number }>,
   discipline: {
@@ -929,6 +953,66 @@ export const LIVE_RESULTS = {
       "yellows": 0,
       "red": "none"
     }
+  },
+  "67": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "68": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "69": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "70": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "71": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "72": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
   }
 } as Record<number, MatchDiscipline>,
   knockout: {} as Partial<Record<MatchId, string>>,
@@ -970,10 +1054,10 @@ export const LIVE_RESULTS = {
   "SEN": -2,
   "IRQ": -8,
   "ALG": -1,
-  "JOR": -1,
   "ARG": -2,
-  "AUT": -3
+  "AUT": -4,
+  "JOR": -4
 } as Record<string, number>,
-  syncedAt: "2026-06-27T21:13:20.747Z",
+  syncedAt: "2026-06-28T04:41:23.365Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
