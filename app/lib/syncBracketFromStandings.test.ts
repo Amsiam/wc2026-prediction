@@ -1,4 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+vi.mock('../data/autoConfirmed', () => ({
+  AUTO_CONFIRMED: {
+    groups: {},
+    scores: {},
+    discipline: {},
+    matches: {},
+    syncedAt: '',
+    source: '',
+  },
+}))
+
 import { bracketStore } from '../store/bracketStore'
 import { groupScoreStore } from '../store/groupScoreStore'
 import { EMPTY_STATE } from './encoding'
@@ -42,5 +54,6 @@ describe('syncBracketFromStandings', () => {
     syncBracketFromStandings()
 
     expect(bracketStore.getState().groups.D.first).toBe('USA')
+    expect(bracketStore.getState().groups.D.second).toBeNull()
   })
 })

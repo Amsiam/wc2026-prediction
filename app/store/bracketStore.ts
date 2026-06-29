@@ -216,9 +216,41 @@ function applyThirdSlots(groups: BracketState['groups']): BracketState['groups']
   return result
 }
 
+function mergeConfirmedGroups(groups: BracketState['groups']): BracketState['groups'] {
+  let result = { ...groups }
+  for (const g of GROUPS) {
+    const conf = CONFIRMED_GROUPS[g]
+    if (!conf) continue
+    result = {
+      ...result,
+      [g]: {
+        ...result[g],
+        ...(conf.first !== undefined ? { first: conf.first } : {}),
+        ...(conf.second !== undefined ? { second: conf.second } : {}),
+        ...(conf.third !== undefined ? { third: conf.third } : {}),
+        ...(conf.thirdSlot !== undefined ? { thirdSlot: conf.thirdSlot } : {}),
+      },
+    }
+  }
+  return applyThirdSlots(result)
+}
+
+function mergeConfirmedMatches(matches: BracketState['matches']): BracketState['matches'] {
+  const result = { ...matches }
+  for (const [id, winner] of Object.entries(CONFIRMED_MATCHES) as [MatchId, string][]) {
+    result[id] = { winner }
+  }
+  return result
+}
+
 export function createBracketStore() {
+  const empty = makeEmptyState()
+  const initialGroups = mergeConfirmedGroups(empty.groups)
+  const initialMatches = mergeConfirmedMatches(empty.matches)
+
   return createStore<BracketStore>((set) => ({
-    ...makeEmptyState(),
+    groups: initialGroups,
+    matches: initialMatches,
 
     setGroupFirst: (group, teamId) => {
       if (isGroupFieldLocked(group, 'first')) return
@@ -365,17 +397,9 @@ export function createBracketStore() {
 
     loadState: (state) =>
       set(() => {
-        // Merge: user state base, but confirmed picks always win
-        const groups = { ...state.groups }
-        for (const [g, conf] of Object.entries(CONFIRMED_GROUPS) as [GroupKey, typeof CONFIRMED_GROUPS[GroupKey]][]) {
-          if (!conf) continue
-          groups[g] = { ...groups[g], ...conf }
-        }
-        const matches = { ...state.matches }
-        for (const [id, winner] of Object.entries(CONFIRMED_MATCHES) as [MatchId, string][]) {
-          matches[id] = { winner }
-        }
-        return { groups: applyThirdSlots(groups), matches }
+        const groups = mergeConfirmedGroups({ ...state.groups })
+        const matches = mergeConfirmedMatches({ ...state.matches })
+        return { groups, matches }
       }),
   }))
 }

@@ -29,6 +29,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: 'chore: sync WC 2026 match results'
-          file_pattern: app/data/liveResults.ts
+          file_pattern: app/data/liveResults.ts app/data/autoConfirmed.ts
           commit_user_name: github-actions[bot]
           commit_user_email: github-actions[bot]@users.noreply.github.com

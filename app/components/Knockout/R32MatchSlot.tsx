@@ -1,6 +1,6 @@
 import { useStore } from 'zustand'
 import { bracketStore } from '../../store/bracketStore'
-import { getTeamById, R32_FIXTURES, getGroup } from '../../data/teams'
+import { getTeamById, R32_FIXTURES } from '../../data/teams'
 import { CONFIRMED_GROUPS, CONFIRMED_MATCHES } from '../../data/confirmed'
 import type { MatchId, SeedSource, GroupKey } from '../../data/teams'
 import type { GroupPick } from '../../store/types'
@@ -27,6 +27,22 @@ function seedLabel(seed: SeedSource): string {
   if (seed.source === 'winner') return `1st Group ${seed.group}`
   if (seed.source === 'runner') return `2nd Group ${seed.group}`
   return `3rd (${seed.groups!.join('/')})`
+}
+
+function isSeedLocked(seed: SeedSource, matchId: MatchId): boolean {
+  if (seed.source === 'winner') {
+    return CONFIRMED_GROUPS[seed.group!]?.first !== undefined
+  }
+  if (seed.source === 'runner') {
+    return CONFIRMED_GROUPS[seed.group!]?.second !== undefined
+  }
+  if (seed.source === 'third') {
+    for (const g of seed.groups ?? []) {
+      const conf = CONFIRMED_GROUPS[g as GroupKey]
+      if (conf?.third !== undefined && conf.thirdSlot === matchId) return true
+    }
+  }
+  return false
 }
 
 function TeamRow({ teamId, label, isWinner, dimmed, canClick, locked, onClick, onClear }: {
@@ -76,16 +92,8 @@ export function R32MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
   const hasWinner = winner !== null
   const bothKnown = homeId !== null && awayId !== null
   const winnerLocked = CONFIRMED_MATCHES[matchId] !== undefined
-  const homeLocked = fixture.home.source === 'winner'
-    ? CONFIRMED_GROUPS[fixture.home.group!]?.first !== undefined
-    : fixture.home.source === 'runner'
-    ? CONFIRMED_GROUPS[fixture.home.group!]?.second !== undefined
-    : false
-  const awayLocked = fixture.away.source === 'winner'
-    ? CONFIRMED_GROUPS[fixture.away.group!]?.first !== undefined
-    : fixture.away.source === 'runner'
-    ? CONFIRMED_GROUPS[fixture.away.group!]?.second !== undefined
-    : false
+  const homeLocked = isSeedLocked(fixture.home, matchId)
+  const awayLocked = isSeedLocked(fixture.away, matchId)
 
   return (
     <div className={`match-card flex flex-col ${hasWinner ? 'winner-set' : ''}`}>

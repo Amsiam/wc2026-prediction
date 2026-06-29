@@ -1,4 +1,16 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+
+vi.mock('../data/autoConfirmed', () => ({
+  AUTO_CONFIRMED: {
+    groups: {},
+    scores: {},
+    discipline: {},
+    matches: {},
+    syncedAt: '',
+    source: '',
+  },
+}))
+
 import { createBracketStore } from './bracketStore'
 
 describe('bracketStore', () => {

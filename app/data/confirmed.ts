@@ -1,36 +1,48 @@
 import type { GroupKey, MatchId } from './teams'
 import type { MatchDiscipline } from '../lib/fairPlay'
+import { AUTO_CONFIRMED } from './autoConfirmed'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Update these as the tournament progresses.
-// Once a value is set here it becomes read-only in the UI — users cannot
-// change it and shared links cannot override it.
+// Official results — auto-filled from web sync (autoConfirmed.ts) via GitHub
+// Actions. Manual overrides below take precedence over synced data.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Official group-stage results. Add keys as each group is finalised. */
+/** Manual overrides (optional). Merged on top of AUTO_CONFIRMED.groups. */
+export const MANUAL_CONFIRMED_GROUPS: Partial<Record<GroupKey, {
+  first?: string
+  second?: string
+  third?: string
+  thirdSlot?: MatchId
+}>> = {}
+
+/** Manual knockout overrides (optional). */
+export const MANUAL_CONFIRMED_MATCHES: Partial<Record<MatchId, string>> = {}
+
+/** Official group-stage results — locks bracket paths when set. */
 export const CONFIRMED_GROUPS: Partial<Record<GroupKey, {
-  first?: string   // team ID of group winner
-  second?: string  // team ID of runner-up
-  third?: string   // team ID of best 3rd-place qualifier from this group
+  first?: string
+  second?: string
+  third?: string
   thirdSlot?: MatchId
 }>> = {
-  // Example — uncomment & fill in when group A is done:
-  // A: { first: 'MEX', second: 'KOR', third: 'CZE', thirdSlot: 'r32_m1' },
+  ...AUTO_CONFIRMED.groups,
+  ...MANUAL_CONFIRMED_GROUPS,
 }
 
-/** Official knockout results. Add matchId → winner teamId as each match is played. */
+/** Official knockout results. */
 export const CONFIRMED_MATCHES: Partial<Record<MatchId, string>> = {
-  // r32_m1: 'MEX',
+  ...AUTO_CONFIRMED.matches,
+  ...MANUAL_CONFIRMED_MATCHES,
 }
 
-/** Official group-stage scores. Add matchNumber → { home, away } as each match is played. */
+/** Official group-stage scores — locks score entry in UI. */
 export const CONFIRMED_SCORES: Record<number, { home: number; away: number }> = {
-  // 1: { home: 2, away: 0 },  // M1: Mexico 2-0 South Africa
+  ...AUTO_CONFIRMED.scores,
 }
 
-/** Official cards / fair-play per match (yellows + red type per side). */
+/** Official cards / fair-play per match. */
 export const CONFIRMED_DISCIPLINE: Record<number, MatchDiscipline> = {
-  // 1: { home: { yellows: 1, red: 'none' }, away: { yellows: 2, red: 'none' } },
+  ...AUTO_CONFIRMED.discipline,
 }
 
 // ── Helpers used by store and UI ─────────────────────────────────────────────
