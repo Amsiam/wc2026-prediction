@@ -5,26 +5,30 @@ import { SCHEDULE } from '../app/data/schedule.ts'
 import { computeBracketQualifiers } from '../app/lib/computeBracketQualifiers.ts'
 import { fetchWorldCupResults, formatResultsTs } from '../app/lib/fetchResults.ts'
 import { formatAutoConfirmedTs } from '../app/lib/formatAutoConfirmed.ts'
+import { alignKnockoutScoresToSchedule } from '../app/lib/knockoutParticipants.ts'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const data = await fetchWorldCupResults()
-
-const liveOut = resolve(__dirname, '../app/data/liveResults.ts')
-writeFileSync(liveOut, formatResultsTs(data), 'utf8')
-
-const groupMatchNumbers = new Set(
-  SCHEDULE.filter(m => m.round === 'Group Stage').map(m => m.matchNumber),
-)
-const groupScores = Object.fromEntries(
-  Object.entries(data.scores).filter(([n]) => groupMatchNumbers.has(Number(n))),
-)
 
 const { groups } = computeBracketQualifiers(
   data.scores,
   data.discipline,
   data.teamConduct,
   { completeOnly: true },
+)
+
+const alignedScores = alignKnockoutScoresToSchedule(data.scores, groups, data.knockout)
+const syncedData = { ...data, scores: alignedScores }
+
+const liveOut = resolve(__dirname, '../app/data/liveResults.ts')
+writeFileSync(liveOut, formatResultsTs(syncedData), 'utf8')
+
+const groupMatchNumbers = new Set(
+  SCHEDULE.filter(m => m.round === 'Group Stage').map(m => m.matchNumber),
+)
+const groupScores = Object.fromEntries(
+  Object.entries(syncedData.scores).filter(([n]) => groupMatchNumbers.has(Number(n))),
 )
 
 const autoConfirmedOut = resolve(__dirname, '../app/data/autoConfirmed.ts')
@@ -39,7 +43,7 @@ writeFileSync(autoConfirmedOut, formatAutoConfirmedTs({
   source: data.source,
 }), 'utf8')
 
-const scoreCount = Object.keys(data.scores).length
+const scoreCount = Object.keys(syncedData.scores).length
 const conductCount = Object.keys(data.teamConduct).length
 const koCount = Object.keys(data.knockout).length
 const groupCount = Object.keys(groups).length

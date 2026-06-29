@@ -3,6 +3,7 @@ import { TEAMS } from '../data/teams'
 import type { MatchId } from '../data/teams'
 import type { MatchDiscipline } from './fairPlay'
 import { EMPTY_MATCH_DISCIPLINE } from './fairPlay'
+import { MATCH_NUMBER_BY_BRACKET } from './knockoutParticipants'
 import { sourceNameToCanonical } from './openFootballNames'
 import { resolveTeamId } from './standings'
 
@@ -21,16 +22,9 @@ const OPENFOOTBALL_URL =
 
 const WIKI_USER_AGENT = 'wc2026-predictor/1.0 (free open-data; educational project)'
 
-const SCHEDULE_TO_BRACKET: Record<number, MatchId> = {
-  73: 'r32_m1',  74: 'r32_m2',  75: 'r32_m3',  76: 'r32_m4',
-  77: 'r32_m5',  78: 'r32_m6',  79: 'r32_m7',  80: 'r32_m8',
-  81: 'r32_m9',  82: 'r32_m10', 83: 'r32_m11', 84: 'r32_m12',
-  85: 'r32_m13', 86: 'r32_m14', 87: 'r32_m15', 88: 'r32_m16',
-  89: 'r16_m1',  90: 'r16_m2',  91: 'r16_m3',  92: 'r16_m4',
-  93: 'r16_m5',  94: 'r16_m6',  95: 'r16_m7',  96: 'r16_m8',
-  97: 'qf_m1',   98: 'qf_m2',   99: 'qf_m3',   100: 'qf_m4',
-  101: 'sf_m1',  102: 'sf_m2',
-}
+const SCHEDULE_TO_BRACKET: Record<number, MatchId> = Object.fromEntries(
+  Object.entries(MATCH_NUMBER_BY_BRACKET).map(([id, num]) => [num, id as MatchId]),
+) as Record<number, MatchId>
 
 interface OpenFootballMatch {
   round?: string
@@ -38,7 +32,7 @@ interface OpenFootballMatch {
   date?: string
   team1?: string
   team2?: string
-  score?: { ft?: [number, number] }
+  score?: { ft?: [number, number]; pens?: [number, number] }
   group?: string
 }
 
@@ -76,6 +70,19 @@ function teamIdFromName(name: string): string | undefined {
   return resolveTeamId(scheduleName, {})
 }
 
+/** Knockout schedule rows use placeholders (2A, W73); winners come from source team names. */
+function winnerFromOpenFootballMatch(m: OpenFootballMatch): string | undefined {
+  if (!m.team1 || !m.team2 || !m.score?.ft) return undefined
+  const [g1, g2] = m.score.ft
+  if (g1 > g2) return teamIdFromName(m.team1)
+  if (g2 > g1) return teamIdFromName(m.team2)
+  const [p1, p2] = m.score.pens ?? []
+  if (p1 == null || p2 == null) return undefined
+  if (p1 > p2) return teamIdFromName(m.team1)
+  if (p2 > p1) return teamIdFromName(m.team2)
+  return undefined
+}
+
 async function fetchOpenFootball(): Promise<Pick<FetchedResults, 'scores' | 'discipline' | 'knockout'>> {
   const res = await fetch(OPENFOOTBALL_URL, {
     headers: { 'User-Agent': WIKI_USER_AGENT },
@@ -102,11 +109,8 @@ async function fetchOpenFootball(): Promise<Pick<FetchedResults, 'scores' | 'dis
 
     const bracketId = SCHEDULE_TO_BRACKET[sched.matchNumber]
     if (bracketId) {
-      const winnerName = home > away ? sched.homeTeam : away > home ? sched.awayTeam : null
-      if (winnerName) {
-        const winnerId = resolveTeamId(winnerName, {})
-        if (winnerId) knockout[bracketId] = winnerId
-      }
+      const winnerId = winnerFromOpenFootballMatch(m)
+      if (winnerId) knockout[bracketId] = winnerId
     }
   }
 
@@ -256,6 +260,23 @@ async function fetchWikipediaFairPlay(): Promise<Record<string, number>> {
 /** @internal exported for tests */
 export function parseDisciplineSectionForTest(html: string): Record<string, number> {
   return parseDisciplineSection(html)
+}
+
+/** @internal exported for tests */
+export function parseOpenFootballKnockoutForTest(
+  matches: OpenFootballMatch[],
+): Partial<Record<MatchId, string>> {
+  const knockout: Partial<Record<MatchId, string>> = {}
+  for (const m of matches) {
+    if (!m.team1 || !m.team2 || !m.score?.ft) continue
+    const sched = findScheduleMatch(m.team1, m.team2, m.group, m.num)
+    if (!sched) continue
+    const bracketId = SCHEDULE_TO_BRACKET[sched.matchNumber]
+    if (!bracketId) continue
+    const winnerId = winnerFromOpenFootballMatch(m)
+    if (winnerId) knockout[bracketId] = winnerId
+  }
+  return knockout
 }
 
 /** Fetch WC results from free public sources (no API key). */

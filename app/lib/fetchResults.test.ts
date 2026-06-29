@@ -52,3 +52,31 @@ describe('Wikipedia discipline parsing', () => {
     expect(conduct).toEqual({ NZL: 0, IRN: -1, BEL: -2, EGY: -2 })
   })
 })
+
+describe('openfootball knockout parsing', () => {
+  it('resolves R32 winner from real team names when schedule uses placeholders', async () => {
+    const { parseOpenFootballKnockoutForTest } = await import('./fetchResults')
+    const knockout = parseOpenFootballKnockoutForTest([
+      {
+        num: 73,
+        team1: 'South Africa',
+        team2: 'Canada',
+        score: { ft: [1, 0] },
+      },
+    ])
+    expect(knockout).toEqual({ r32_m1: 'RSA' })
+  })
+
+  it('resolves penalty shootout winner', async () => {
+    const { parseOpenFootballKnockoutForTest } = await import('./fetchResults')
+    const knockout = parseOpenFootballKnockoutForTest([
+      {
+        num: 73,
+        team1: 'South Africa',
+        team2: 'Canada',
+        score: { ft: [0, 0], pens: [4, 5] },
+      },
+    ])
+    expect(knockout).toEqual({ r32_m1: 'CAN' })
+  })
+})

@@ -1086,7 +1086,9 @@ export const AUTO_CONFIRMED = {
     }
   }
 } as Record<number, MatchDiscipline>,
-  matches: {} as Partial<Record<MatchId, string>>,
-  syncedAt: "2026-06-29T05:36:14.666Z",
+  matches: {
+  "r32_m1": "CAN"
+} as Partial<Record<MatchId, string>>,
+  syncedAt: "2026-06-29T05:47:19.830Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
