@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-vi.mock('../data/autoConfirmed', () => ({
-  AUTO_CONFIRMED: {
-    groups: {},
-    scores: {},
-    discipline: {},
-    matches: {},
-    syncedAt: '',
-    source: '',
-  },
+vi.mock('../data/confirmed', () => ({
+  CONFIRMED_GROUPS: {},
+  CONFIRMED_MATCHES: {},
+  CONFIRMED_SCORES: {},
+  CONFIRMED_DISCIPLINE: {},
+  isGroupFieldLocked: () => false,
+  isMatchLocked: () => false,
+  isScoreLocked: () => false,
+  isDisciplineLocked: () => false,
 }))
 
 import { createBracketStore } from './bracketStore'

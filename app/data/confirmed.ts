@@ -1,13 +1,42 @@
 import type { GroupKey, MatchId } from './teams'
 import type { MatchDiscipline } from '../lib/fairPlay'
-import { AUTO_CONFIRMED } from './autoConfirmed'
+import { LIVE_RESULTS } from './liveResults'
+import { SCHEDULE } from './schedule'
+import { computeBracketQualifiers } from '../lib/computeBracketQualifiers'
+
+const GROUP_MATCH_NUMBERS = new Set(
+  SCHEDULE.filter(m => m.round === 'Group Stage').map(m => m.matchNumber),
+)
+
+function groupStageOnly<T>(record: Record<number, T>): Record<number, T> {
+  return Object.fromEntries(
+    Object.entries(record).filter(([n]) => GROUP_MATCH_NUMBERS.has(Number(n))),
+  ) as Record<number, T>
+}
+
+function syncFromLiveResults() {
+  const { groups } = computeBracketQualifiers(
+    LIVE_RESULTS.scores,
+    LIVE_RESULTS.discipline,
+    LIVE_RESULTS.teamConduct,
+    { completeOnly: true },
+  )
+  return {
+    groups,
+    scores: groupStageOnly(LIVE_RESULTS.scores),
+    discipline: groupStageOnly(LIVE_RESULTS.discipline),
+    matches: LIVE_RESULTS.knockout,
+  }
+}
+
+const SYNCED = syncFromLiveResults()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Official results — auto-filled from web sync (autoConfirmed.ts) via GitHub
-// Actions. Manual overrides below take precedence over synced data.
+// Official results — derived from liveResults.ts (synced via GitHub Actions).
+// Manual overrides below take precedence over synced data.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Manual overrides (optional). Merged on top of AUTO_CONFIRMED.groups. */
+/** Manual overrides (optional). Merged on top of synced groups. */
 export const MANUAL_CONFIRMED_GROUPS: Partial<Record<GroupKey, {
   first?: string
   second?: string
@@ -25,24 +54,24 @@ export const CONFIRMED_GROUPS: Partial<Record<GroupKey, {
   third?: string
   thirdSlot?: MatchId
 }>> = {
-  ...AUTO_CONFIRMED.groups,
+  ...SYNCED.groups,
   ...MANUAL_CONFIRMED_GROUPS,
 }
 
 /** Official knockout results. */
 export const CONFIRMED_MATCHES: Partial<Record<MatchId, string>> = {
-  ...AUTO_CONFIRMED.matches,
+  ...SYNCED.matches,
   ...MANUAL_CONFIRMED_MATCHES,
 }
 
 /** Official group-stage scores — locks score entry in UI. */
 export const CONFIRMED_SCORES: Record<number, { home: number; away: number }> = {
-  ...AUTO_CONFIRMED.scores,
+  ...SYNCED.scores,
 }
 
 /** Official cards / fair-play per match. */
 export const CONFIRMED_DISCIPLINE: Record<number, MatchDiscipline> = {
-  ...AUTO_CONFIRMED.discipline,
+  ...SYNCED.discipline,
 }
 
 // ── Helpers used by store and UI ─────────────────────────────────────────────
