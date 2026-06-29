@@ -20,6 +20,8 @@ export function applyFetchedResults(data: FetchedResults): void {
       bracketStore.getState().setMatchWinner(id, winner)
     }
   }
+
+  bracketStore.getState().applyOfficialLocks()
 }
 
 export type SyncResultsOutcome =

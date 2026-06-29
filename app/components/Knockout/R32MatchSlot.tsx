@@ -45,19 +45,20 @@ function isSeedLocked(seed: SeedSource, matchId: MatchId): boolean {
   return false
 }
 
-function TeamRow({ teamId, label, isWinner, dimmed, canClick, locked, onClick, onClear }: {
+function TeamRow({ teamId, label, isWinner, dimmed, canClick, showLock, pickDisabled, onClick, onClear }: {
   teamId: string | null
   label: string
   isWinner: boolean
   dimmed: boolean
   canClick: boolean
-  locked?: boolean
+  showLock?: boolean
+  pickDisabled?: boolean
   onClick: () => void
   onClear?: () => void
 }) {
   const team = teamId ? getTeamById(teamId) : null
   const rowState = isWinner ? 'row-winner' : dimmed ? 'row-loser' : 'row-idle'
-  const clickable = canClick && !locked
+  const clickable = canClick && !pickDisabled
   return (
     <div
       onClick={clickable ? onClick : undefined}
@@ -67,7 +68,7 @@ function TeamRow({ teamId, label, isWinner, dimmed, canClick, locked, onClick, o
         <>
           <span className={`fi fi-${team.flagCode} match-flag`} />
           <span className={`match-name ${isWinner ? 'name-win' : dimmed ? 'name-lose' : ''}`}>{team.name}</span>
-          {locked
+          {showLock
             ? <span className="match-clear" style={{ opacity: 1, color: '#4a7a9b', cursor: 'default' }}>🔒</span>
             : <button className="match-clear" onClick={e => { e.stopPropagation(); onClear?.() }} title="Remove">×</button>
           }
@@ -88,10 +89,12 @@ export function R32MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
 
   const homeId = resolveTeamId(fixture.home, groups, matchId)
   const awayId = resolveTeamId(fixture.away, groups, matchId)
-  const winner = match?.winner ?? null
+  const winnerLocked = CONFIRMED_MATCHES[matchId] !== undefined
+  const winner = winnerLocked
+    ? (CONFIRMED_MATCHES[matchId] ?? match?.winner ?? null)
+    : (match?.winner ?? null)
   const hasWinner = winner !== null
   const bothKnown = homeId !== null && awayId !== null
-  const winnerLocked = CONFIRMED_MATCHES[matchId] !== undefined
   const homeLocked = isSeedLocked(fixture.home, matchId)
   const awayLocked = isSeedLocked(fixture.away, matchId)
 
@@ -103,11 +106,12 @@ export function R32MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
         isWinner={hasWinner && winner === homeId}
         dimmed={hasWinner && winner !== homeId}
         canClick={homeId !== null ? bothKnown : true}
-        locked={homeId !== null ? (homeLocked || winnerLocked) : homeLocked}
+        showLock={homeId !== null ? (homeLocked || winnerLocked) : homeLocked}
+        pickDisabled={bothKnown ? winnerLocked : homeLocked}
         onClick={homeId !== null && bothKnown
           ? () => onWinnerPick(matchId, homeId)
           : () => onSlotClick(matchId, 'home')}
-        onClear={homeId !== null ? () => bracketStore.getState().clearTeam(homeId) : undefined}
+        onClear={homeId !== null && !homeLocked ? () => bracketStore.getState().clearTeam(homeId) : undefined}
       />
       <div className="match-divider" />
       <TeamRow
@@ -116,11 +120,12 @@ export function R32MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
         isWinner={hasWinner && winner === awayId}
         dimmed={hasWinner && winner !== awayId}
         canClick={awayId !== null ? bothKnown : true}
-        locked={awayId !== null ? (awayLocked || winnerLocked) : awayLocked}
+        showLock={awayId !== null ? (awayLocked || winnerLocked) : awayLocked}
+        pickDisabled={bothKnown ? winnerLocked : awayLocked}
         onClick={awayId !== null && bothKnown
           ? () => onWinnerPick(matchId, awayId)
           : () => onSlotClick(matchId, 'away')}
-        onClear={awayId !== null ? () => bracketStore.getState().clearTeam(awayId) : undefined}
+        onClear={awayId !== null && !awayLocked ? () => bracketStore.getState().clearTeam(awayId) : undefined}
       />
     </div>
   )

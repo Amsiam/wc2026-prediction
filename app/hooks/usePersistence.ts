@@ -8,10 +8,11 @@ export function useHydrate() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const urlParam = params.get('p')
-    if (!urlParam) return
-
-    const state = decodePicks(urlParam)
-    if (state) bracketStore.getState().loadState(state)
+    if (urlParam) {
+      const state = decodePicks(urlParam)
+      if (state) bracketStore.getState().loadState(state)
+    }
+    bracketStore.getState().applyOfficialLocks()
   }, [])
 }
 

@@ -25,19 +25,20 @@ interface Props {
   onWinnerPick: (matchId: MatchId, teamId: string) => void
 }
 
-function SlotRow({ teamId, label, isWinner, dimmed, canClick, locked, onClick, onClear }: {
+function SlotRow({ teamId, label, isWinner, dimmed, canClick, showLock, pickDisabled, onClick, onClear }: {
   teamId: string | null
   label: string
   isWinner: boolean
   dimmed: boolean
   canClick: boolean
-  locked?: boolean
+  showLock?: boolean
+  pickDisabled?: boolean
   onClick: () => void
   onClear?: () => void
 }) {
   const team = teamId ? getTeamById(teamId) : null
   const rowState = isWinner ? 'row-winner' : dimmed ? 'row-loser' : 'row-idle'
-  const clickable = canClick && !locked
+  const clickable = canClick && !pickDisabled
   return (
     <div
       onClick={clickable ? onClick : undefined}
@@ -47,7 +48,7 @@ function SlotRow({ teamId, label, isWinner, dimmed, canClick, locked, onClick, o
         <>
           <span className={`fi fi-${team.flagCode} match-flag`} />
           <span className={`match-name ${isWinner ? 'name-win' : dimmed ? 'name-lose' : ''}`}>{team.name}</span>
-          {locked
+          {showLock
             ? <span className="match-clear" style={{ opacity: 1, color: '#4a7a9b', cursor: 'default' }}>🔒</span>
             : <button className="match-clear" onClick={e => { e.stopPropagation(); onClear?.() }} title="Remove">×</button>
           }
@@ -67,12 +68,12 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
   const awayId = children ? (matches[children[1]]?.winner ?? null) : null
   const homeLabel = children ? childLabel(children[0] as MatchId) : 'TBD'
   const awayLabel = children ? childLabel(children[1] as MatchId) : 'TBD'
-  const bothKnown = homeId !== null && awayId !== null
-  const winner = match?.winner ?? null
-  const hasWinner = winner !== null
   const winnerLocked = CONFIRMED_MATCHES[matchId] !== undefined
-  const homeSrcLocked = children ? CONFIRMED_MATCHES[children[0] as MatchId] !== undefined : false
-  const awaySrcLocked = children ? CONFIRMED_MATCHES[children[1] as MatchId] !== undefined : false
+  const winner = winnerLocked
+    ? (CONFIRMED_MATCHES[matchId] ?? match?.winner ?? null)
+    : (match?.winner ?? null)
+  const hasWinner = winner !== null
+  const bothKnown = homeId !== null && awayId !== null
 
   return (
     <div className={`match-card flex flex-col ${hasWinner ? 'winner-set' : ''}`}>
@@ -82,7 +83,8 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
         isWinner={hasWinner && winner === homeId}
         dimmed={hasWinner && winner !== homeId}
         canClick={homeId !== null ? bothKnown : true}
-        locked={homeId !== null ? (homeSrcLocked || winnerLocked) : homeSrcLocked}
+        showLock={winnerLocked}
+        pickDisabled={winnerLocked}
         onClick={homeId !== null && bothKnown
           ? () => onWinnerPick(matchId, homeId)
           : () => onSlotClick(matchId, 'home')}
@@ -95,7 +97,8 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
         isWinner={hasWinner && winner === awayId}
         dimmed={hasWinner && winner !== awayId}
         canClick={awayId !== null ? bothKnown : true}
-        locked={awayId !== null ? (awaySrcLocked || winnerLocked) : awaySrcLocked}
+        showLock={winnerLocked}
+        pickDisabled={winnerLocked}
         onClick={awayId !== null && bothKnown
           ? () => onWinnerPick(matchId, awayId)
           : () => onSlotClick(matchId, 'away')}

@@ -6,6 +6,7 @@ import { R32MatchSlot } from './R32MatchSlot'
 import { TeamPicker } from './TeamPicker'
 import { ThirdPlaceSlot } from './ThirdPlaceSlot'
 import { getTeamById, getGroup, BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
+import { isMatchLocked } from '../../data/confirmed'
 import { getSlotPool, getR32SlotPool, inferTeamR32Entry, getR32Ancestors } from '../../lib/bracket'
 import type { MatchId, Team, GroupKey, SeedSource } from '../../data/teams'
 
@@ -114,6 +115,7 @@ export function BracketView() {
   }
 
   function handleWinnerPick(matchId: MatchId, teamId: string) {
+    if (isMatchLocked(matchId)) return
     const current = bracketStore.getState().matches[matchId]?.winner
     bracketStore.getState().setMatchWinner(matchId, current === teamId ? null : teamId)
   }
@@ -224,8 +226,11 @@ export function BracketView() {
     // Backfill upstream: R32 → … → feeder match on this slot's path only
     const path = findPath(entry.r32Id, childId)
     if (path) {
-      for (const id of path) store.setMatchWinner(id, team.id)
-    } else {
+      for (const id of path) {
+        if (isMatchLocked(id)) continue
+        store.setMatchWinner(id, team.id)
+      }
+    } else if (!isMatchLocked(entry.r32Id)) {
       store.setMatchWinner(entry.r32Id, team.id)
     }
 

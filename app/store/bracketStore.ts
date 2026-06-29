@@ -27,6 +27,8 @@ export interface BracketActions {
   clearDownstream: (matchId: MatchId) => void
   fillDownstream: (matchId: MatchId, teamId: TeamId) => void
   loadState: (state: BracketState) => void
+  /** Re-apply official group/knockout locks onto current picks. */
+  applyOfficialLocks: () => void
 }
 
 export type BracketStore = BracketState & BracketActions
@@ -335,12 +337,13 @@ export function createBracketStore() {
     },
 
     backfillPath: (matchId, teamId, side) => {
+      if (isMatchLocked(matchId)) return
       const ancestors = getAncestorChain(matchId, side)
       set(s => {
         const matches = { ...s.matches }
         matches[matchId] = { winner: teamId }
         for (const id of ancestors) {
-          matches[id] = { winner: teamId }
+          if (!isMatchLocked(id)) matches[id] = { winner: teamId }
         }
         return { matches }
       })
@@ -375,7 +378,7 @@ export function createBracketStore() {
       set(s => {
         const matches = { ...s.matches }
         for (const id of downstream) {
-          matches[id] = { winner: null }
+          if (!isMatchLocked(id)) matches[id] = { winner: null }
         }
         return { matches }
       })
@@ -401,6 +404,12 @@ export function createBracketStore() {
         const matches = mergeConfirmedMatches({ ...state.matches })
         return { groups, matches }
       }),
+
+    applyOfficialLocks: () =>
+      set(s => ({
+        groups: mergeConfirmedGroups(s.groups),
+        matches: mergeConfirmedMatches(s.matches),
+      })),
   }))
 }
 

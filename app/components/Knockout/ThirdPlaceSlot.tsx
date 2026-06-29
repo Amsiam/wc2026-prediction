@@ -1,6 +1,7 @@
 import { useStore } from 'zustand'
 import { bracketStore } from '../../store/bracketStore'
 import { getMatchLoser } from '../../lib/bracket'
+import { CONFIRMED_MATCHES } from '../../data/confirmed'
 import { getTeamById } from '../../data/teams'
 import type { MatchId } from '../../data/teams'
 
@@ -13,21 +14,26 @@ function SlotRow({
   isWinner,
   dimmed,
   canClick,
+  showLock,
+  pickDisabled,
   onClick,
 }: {
   teamId: string | null
   isWinner: boolean
   dimmed: boolean
   canClick: boolean
+  showLock?: boolean
+  pickDisabled?: boolean
   onClick: () => void
 }) {
   const team = teamId ? getTeamById(teamId) : null
   const rowState = isWinner ? 'row-winner' : dimmed ? 'row-loser' : 'row-idle'
+  const clickable = canClick && !pickDisabled
 
   return (
     <div
-      onClick={canClick ? onClick : undefined}
-      className={`match-row ${rowState} ${canClick ? 'row-clickable' : 'row-inert'}`}
+      onClick={clickable ? onClick : undefined}
+      className={`match-row ${rowState} ${clickable ? 'row-clickable' : 'row-inert'}`}
     >
       {team ? (
         <>
@@ -35,6 +41,9 @@ function SlotRow({
           <span className={`match-name ${isWinner ? 'name-win' : dimmed ? 'name-lose' : ''}`}>
             {team.name}
           </span>
+          {showLock ? (
+            <span className="match-clear" style={{ opacity: 1, color: '#4a7a9b', cursor: 'default' }}>🔒</span>
+          ) : null}
         </>
       ) : (
         <span className="match-seed">TBD</span>
@@ -49,11 +58,14 @@ export function ThirdPlaceSlot({ onWinnerPick }: Props) {
   const homeId = getMatchLoser('sf_m1', matches)
   const awayId = getMatchLoser('sf_m2', matches)
 
+  const winnerLocked = CONFIRMED_MATCHES.third_place !== undefined
   const storedWinner = matches.third_place?.winner ?? null
+  const officialWinner = winnerLocked ? CONFIRMED_MATCHES.third_place : null
   const winner =
-    storedWinner && (storedWinner === homeId || storedWinner === awayId)
+    officialWinner ??
+    (storedWinner && (storedWinner === homeId || storedWinner === awayId)
       ? storedWinner
-      : null
+      : null)
   const hasWinner = winner !== null
   const bothKnown = homeId !== null && awayId !== null
 
@@ -64,6 +76,8 @@ export function ThirdPlaceSlot({ onWinnerPick }: Props) {
         isWinner={hasWinner && winner === homeId}
         dimmed={hasWinner && winner !== homeId}
         canClick={!!homeId && bothKnown}
+        showLock={winnerLocked}
+        pickDisabled={winnerLocked}
         onClick={() => homeId && onWinnerPick('third_place', homeId)}
       />
 
@@ -74,6 +88,8 @@ export function ThirdPlaceSlot({ onWinnerPick }: Props) {
         isWinner={hasWinner && winner === awayId}
         dimmed={hasWinner && winner !== awayId}
         canClick={!!awayId && bothKnown}
+        showLock={winnerLocked}
+        pickDisabled={winnerLocked}
         onClick={() => awayId && onWinnerPick('third_place', awayId)}
       />
     </div>
