@@ -64,8 +64,20 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
   const match = useStore(bracketStore, s => s.matches[matchId])
   const matches = useStore(bracketStore, s => s.matches)
   const children = (BRACKET_TREE as Record<string, readonly string[]>)[matchId] as readonly MatchId[] | undefined
-  const homeId = children ? (matches[children[0]]?.winner ?? null) : null
-  const awayId = children ? (matches[children[1]]?.winner ?? null) : null
+  const homeChildId = children?.[0] as MatchId | undefined
+  const awayChildId = children?.[1] as MatchId | undefined
+  const homeFeederLocked = homeChildId ? CONFIRMED_MATCHES[homeChildId] !== undefined : false
+  const awayFeederLocked = awayChildId ? CONFIRMED_MATCHES[awayChildId] !== undefined : false
+  const homeId = homeChildId
+    ? (homeFeederLocked
+      ? (CONFIRMED_MATCHES[homeChildId] ?? matches[homeChildId]?.winner ?? null)
+      : (matches[homeChildId]?.winner ?? null))
+    : null
+  const awayId = awayChildId
+    ? (awayFeederLocked
+      ? (CONFIRMED_MATCHES[awayChildId] ?? matches[awayChildId]?.winner ?? null)
+      : (matches[awayChildId]?.winner ?? null))
+    : null
   const homeLabel = children ? childLabel(children[0] as MatchId) : 'TBD'
   const awayLabel = children ? childLabel(children[1] as MatchId) : 'TBD'
   const winnerLocked = CONFIRMED_MATCHES[matchId] !== undefined
@@ -83,12 +95,14 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
         isWinner={hasWinner && winner === homeId}
         dimmed={hasWinner && winner !== homeId}
         canClick={homeId !== null ? bothKnown : true}
-        showLock={winnerLocked}
+        showLock={homeId !== null && (homeFeederLocked || winnerLocked)}
         pickDisabled={winnerLocked}
         onClick={homeId !== null && bothKnown
           ? () => onWinnerPick(matchId, homeId)
           : () => onSlotClick(matchId, 'home')}
-        onClear={homeId !== null ? () => bracketStore.getState().clearTeam(homeId) : undefined}
+        onClear={homeId !== null && !homeFeederLocked && !winnerLocked
+          ? () => bracketStore.getState().clearTeam(homeId)
+          : undefined}
       />
       <div className="match-divider" />
       <SlotRow
@@ -97,12 +111,14 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
         isWinner={hasWinner && winner === awayId}
         dimmed={hasWinner && winner !== awayId}
         canClick={awayId !== null ? bothKnown : true}
-        showLock={winnerLocked}
+        showLock={awayId !== null && (awayFeederLocked || winnerLocked)}
         pickDisabled={winnerLocked}
         onClick={awayId !== null && bothKnown
           ? () => onWinnerPick(matchId, awayId)
           : () => onSlotClick(matchId, 'away')}
-        onClear={awayId !== null ? () => bracketStore.getState().clearTeam(awayId) : undefined}
+        onClear={awayId !== null && !awayFeederLocked && !winnerLocked
+          ? () => bracketStore.getState().clearTeam(awayId)
+          : undefined}
       />
     </div>
   )

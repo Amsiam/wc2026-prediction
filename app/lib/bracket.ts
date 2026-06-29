@@ -164,14 +164,19 @@ export function getR32SlotPool(r32Id: MatchId, side: 'home' | 'away', state: Bra
   return base.filter(team => {
     const gp = state.groups[team.group as GroupKey]
     if (!gp) return true
-    if (seed.source === 'winner' && (gp.second === team.id || gp.third === team.id)) return false
-    if (seed.source === 'runner' && (gp.first === team.id || gp.third === team.id)) return false
+
+    if (seed.source === 'winner') {
+      if (gp.first !== null && team.id !== gp.first) return false
+      if (gp.second === team.id || gp.third === team.id) return false
+    }
+    if (seed.source === 'runner') {
+      if (gp.second !== null && team.id !== gp.second) return false
+      if (gp.first === team.id || gp.third === team.id) return false
+    }
     if (seed.source === 'third') {
       if (gp.first === team.id || gp.second === team.id) return false
-      // Exclude if this group's 3rd is already assigned to a different R32 slot
       if (gp.thirdSlot !== null && gp.thirdSlot !== r32Id) return false
-      // 495 scenario narrowing: exclude groups that can't go to this slot
-      // given the already-selected 3rd-place groups
+      if (gp.third !== null && team.id !== gp.third) return false
       if (validGroupsForThisSlot && !validGroupsForThisSlot.has(team.group as GroupKey)) return false
     }
     return true
