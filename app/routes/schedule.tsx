@@ -109,7 +109,11 @@ function formatTime(utcDate: string, tz: string): string {
 
 function getDateKey(utcDate: string, tz: string): string {
   return new Date(utcDate).toLocaleDateString(undefined, {
-    year: 'numeric', month: 'long', day: 'numeric', timeZone: tz,
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: tz,
   })
 }
 
