@@ -298,11 +298,19 @@ export const LIVE_RESULTS = {
   },
   "74": {
     "home": 1,
-    "away": 1
+    "away": 1,
+    "pens": {
+      "home": 3,
+      "away": 4
+    }
   },
   "75": {
     "home": 1,
-    "away": 1
+    "away": 1,
+    "pens": {
+      "home": 2,
+      "away": 3
+    }
   },
   "76": {
     "home": 2,
@@ -1073,6 +1081,8 @@ export const LIVE_RESULTS = {
 } as Record<number, MatchDiscipline>,
   knockout: {
   "r32_m1": "CAN",
+  "r32_m2": "PAR",
+  "r32_m3": "MAR",
   "r32_m4": "BRA"
 } as Partial<Record<MatchId, string>>,
   teamConduct: {
@@ -1117,6 +1127,6 @@ export const LIVE_RESULTS = {
   "AUT": -4,
   "JOR": -4
 } as Record<string, number>,
-  syncedAt: "2026-06-30T06:12:56.613Z",
+  syncedAt: "2026-06-30T06:19:33.263Z",
   source: "openfootball/worldcup.json + wikipedia",
 }

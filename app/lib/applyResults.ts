@@ -1,11 +1,16 @@
 import { bracketStore } from '../store/bracketStore'
 import { groupScoreStore } from '../store/groupScoreStore'
-import { isMatchLocked } from '../data/confirmed'
+import { runtimeResultsStore } from './runtimeResults'
 import { syncBracketFromStandings } from './syncBracketFromStandings'
 import type { MatchId } from '../data/teams'
 import type { FetchedResults } from './fetchResults'
 
 export function applyFetchedResults(data: FetchedResults): void {
+  runtimeResultsStore.setState({
+    knockout: data.knockout ?? {},
+    scores: data.scores ?? {},
+  })
+
   groupScoreStore.getState().importLiveResults({
     scores: data.scores,
     discipline: data.discipline,
@@ -16,9 +21,7 @@ export function applyFetchedResults(data: FetchedResults): void {
 
   for (const [matchId, winner] of Object.entries(data.knockout ?? {})) {
     const id = matchId as MatchId
-    if (!isMatchLocked(id)) {
-      bracketStore.getState().setMatchWinner(id, winner)
-    }
+    bracketStore.getState().setMatchWinner(id, winner)
   }
 
   bracketStore.getState().applyOfficialLocks()

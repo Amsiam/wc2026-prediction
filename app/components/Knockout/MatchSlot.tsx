@@ -1,8 +1,10 @@
 import { useStore } from 'zustand'
 import { bracketStore } from '../../store/bracketStore'
 import { getTeamById, BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
-import { CONFIRMED_MATCHES } from '../../data/confirmed'
 import type { MatchId, SeedSource } from '../../data/teams'
+import { CONFIRMED_MATCHES } from '../../data/confirmed'
+import { LIVE_RESULTS } from '../../data/liveResults'
+import { runtimeResultsStore } from '../../lib/runtimeResults'
 
 function shortSeed(s: SeedSource): string {
   if (s.source === 'winner') return `1${s.group}`
@@ -63,27 +65,37 @@ function SlotRow({ teamId, label, isWinner, dimmed, canClick, showLock, pickDisa
 export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
   const match = useStore(bracketStore, s => s.matches[matchId])
   const matches = useStore(bracketStore, s => s.matches)
+  const runtimeKnockout = useStore(runtimeResultsStore, s => s.knockout)
   const children = (BRACKET_TREE as Record<string, readonly string[]>)[matchId] as readonly MatchId[] | undefined
   const homeChildId = children?.[0] as MatchId | undefined
   const awayChildId = children?.[1] as MatchId | undefined
-  const homeFeederLocked = homeChildId ? CONFIRMED_MATCHES[homeChildId] !== undefined : false
-  const awayFeederLocked = awayChildId ? CONFIRMED_MATCHES[awayChildId] !== undefined : false
-  const homeId = homeChildId
-    ? (homeFeederLocked
-      ? (CONFIRMED_MATCHES[homeChildId] ?? matches[homeChildId]?.winner ?? null)
-      : (matches[homeChildId]?.winner ?? null))
-    : null
-  const awayId = awayChildId
-    ? (awayFeederLocked
-      ? (CONFIRMED_MATCHES[awayChildId] ?? matches[awayChildId]?.winner ?? null)
-      : (matches[awayChildId]?.winner ?? null))
-    : null
+
+  function feederWinner(childId: MatchId | undefined): string | null {
+    if (!childId) return null
+    return CONFIRMED_MATCHES[childId]
+      ?? runtimeKnockout[childId]
+      ?? LIVE_RESULTS.knockout[childId]
+      ?? matches[childId]?.winner
+      ?? null
+  }
+
+  function isOfficiallyDecided(childId: MatchId): boolean {
+    return CONFIRMED_MATCHES[childId] !== undefined
+      || runtimeKnockout[childId] !== undefined
+      || LIVE_RESULTS.knockout[childId] !== undefined
+  }
+
+  const homeFeederLocked = homeChildId != null && isOfficiallyDecided(homeChildId)
+  const awayFeederLocked = awayChildId != null && isOfficiallyDecided(awayChildId)
+  const homeId = feederWinner(homeChildId)
+  const awayId = feederWinner(awayChildId)
   const homeLabel = children ? childLabel(children[0] as MatchId) : 'TBD'
   const awayLabel = children ? childLabel(children[1] as MatchId) : 'TBD'
-  const winnerLocked = CONFIRMED_MATCHES[matchId] !== undefined
-  const winner = winnerLocked
-    ? (CONFIRMED_MATCHES[matchId] ?? match?.winner ?? null)
-    : (match?.winner ?? null)
+  const officialWinner = CONFIRMED_MATCHES[matchId]
+    ?? runtimeKnockout[matchId]
+    ?? LIVE_RESULTS.knockout[matchId]
+  const winnerLocked = officialWinner !== undefined
+  const winner = officialWinner ?? match?.winner ?? null
   const hasWinner = winner !== null
   const bothKnown = homeId !== null && awayId !== null
 

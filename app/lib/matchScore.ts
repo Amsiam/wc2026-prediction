@@ -6,9 +6,8 @@ export interface MatchResult {
 }
 
 export function formatMatchScore(score: MatchResult): string {
-  const ft = `${score.home}–${score.away}`
   if (score.pens != null && score.home === score.away) {
-    return `${ft} (${score.pens.home}–${score.pens.away} pens)`
+    return `${score.home}(${score.pens.home})–${score.away}(${score.pens.away})`
   }
-  return ft
+  return `${score.home}–${score.away}`
 }

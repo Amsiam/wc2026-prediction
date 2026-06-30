@@ -4,8 +4,9 @@ import { useStore } from 'zustand'
 import { bracketStore } from '../store/bracketStore'
 import { groupScoreStore } from '../store/groupScoreStore'
 import { SCHEDULE, type ScheduleMatch } from '../data/schedule'
-import { LIVE_RESULTS } from '../data/liveResults'
 import { formatMatchScore } from '../lib/matchScore'
+import { useOfficialMatchResult } from '../lib/runtimeResults'
+import { useResultsSync } from '../hooks/useResultsSync'
 import { resolveScheduleTeam, type ResolvedTeam } from '../lib/scheduleTeams'
 
 function TeamLabel({ team }: { team: ResolvedTeam }) {
@@ -134,7 +135,47 @@ const ROUND_COLORS: Record<string, string> = {
 
 const TZ_STORAGE_KEY = 'wc2026_tz'
 
+function ScheduleMatchRow({
+  match,
+  home,
+  away,
+  tz,
+}: {
+  match: ScheduleMatch
+  home: ResolvedTeam
+  away: ResolvedTeam
+  tz: string
+}) {
+  const score = useOfficialMatchResult(match.matchNumber)
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2.5 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-3">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-xs text-gray-500 shrink-0">M{match.matchNumber}</span>
+        <span className={`text-xs font-medium shrink-0 ${ROUND_COLORS[match.round] ?? 'text-gray-400'}`}>
+          {match.group ? `Grp ${match.group}` : match.round.replace('Round of ', 'R')}
+        </span>
+        <span className="text-sm flex items-center gap-1 min-w-0 flex-1">
+          <TeamLabel team={home} />
+          {score ? (
+            <span className="text-xs font-mono text-green-400 mx-1 shrink-0">
+              {formatMatchScore(score)}
+            </span>
+          ) : (
+            <span className="text-gray-500 mx-0.5 shrink-0">vs</span>
+          )}
+          <TeamLabel team={away} />
+        </span>
+      </div>
+      <div className="flex items-center gap-2 sm:ml-auto sm:text-right sm:flex-col sm:items-end sm:gap-0">
+        <span className="text-xs text-gray-200">{formatTime(match.utcDate, tz)}</span>
+        <span className="text-xs text-gray-500">{match.city}</span>
+      </div>
+    </div>
+  )
+}
+
 function SchedulePage() {
+  useResultsSync()
   const groups    = useStore(bracketStore,    s => s.groups)
   const matches   = useStore(bracketStore,    s => s.matches)
   const overrides = useStore(groupScoreStore, s => s.overrides)
@@ -189,31 +230,14 @@ function SchedulePage() {
               {dayMatches.map(match => {
                 const home = resolveScheduleTeam(match.homeTeam, groups, matches, overrides, match.matchNumber)
                 const away = resolveScheduleTeam(match.awayTeam, groups, matches, overrides, match.matchNumber)
-                const score = LIVE_RESULTS.scores[match.matchNumber]
                 return (
-                  <div key={match.matchNumber} className="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2.5 flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs text-gray-500 shrink-0">M{match.matchNumber}</span>
-                      <span className={`text-xs font-medium shrink-0 ${ROUND_COLORS[match.round] ?? 'text-gray-400'}`}>
-                        {match.group ? `Grp ${match.group}` : match.round.replace('Round of ', 'R')}
-                      </span>
-                      <span className="text-sm flex items-center gap-1 min-w-0 flex-1">
-                        <TeamLabel team={home} />
-                        {score ? (
-                          <span className="text-xs font-mono text-green-400 mx-1 shrink-0">
-                            {formatMatchScore(score)}
-                          </span>
-                        ) : (
-                          <span className="text-gray-500 mx-0.5 shrink-0">vs</span>
-                        )}
-                        <TeamLabel team={away} />
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 sm:ml-auto sm:text-right sm:flex-col sm:items-end sm:gap-0">
-                      <span className="text-xs text-gray-200">{formatTime(match.utcDate, tz)}</span>
-                      <span className="text-xs text-gray-500">{match.city}</span>
-                    </div>
-                  </div>
+                  <ScheduleMatchRow
+                    key={match.matchNumber}
+                    match={match}
+                    home={home}
+                    away={away}
+                    tz={tz}
+                  />
                 )
               })}
             </div>

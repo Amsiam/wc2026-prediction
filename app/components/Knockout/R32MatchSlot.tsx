@@ -1,9 +1,10 @@
 import { useStore } from 'zustand'
 import { bracketStore } from '../../store/bracketStore'
 import { getTeamById, R32_FIXTURES } from '../../data/teams'
-import { CONFIRMED_GROUPS, CONFIRMED_MATCHES } from '../../data/confirmed'
+import { CONFIRMED_GROUPS } from '../../data/confirmed'
 import type { MatchId, SeedSource, GroupKey } from '../../data/teams'
 import type { GroupPick } from '../../store/types'
+import { useOfficialKnockoutWinner } from '../../lib/runtimeResults'
 
 interface Props {
   matchId: MatchId
@@ -89,10 +90,9 @@ export function R32MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
 
   const homeId = resolveTeamId(fixture.home, groups, matchId)
   const awayId = resolveTeamId(fixture.away, groups, matchId)
-  const winnerLocked = CONFIRMED_MATCHES[matchId] !== undefined
-  const winner = winnerLocked
-    ? (CONFIRMED_MATCHES[matchId] ?? match?.winner ?? null)
-    : (match?.winner ?? null)
+  const officialWinner = useOfficialKnockoutWinner(matchId)
+  const winnerLocked = officialWinner !== undefined
+  const winner = officialWinner ?? match?.winner ?? null
   const hasWinner = winner !== null
   const bothKnown = homeId !== null && awayId !== null
   const homeLocked = isSeedLocked(fixture.home, matchId)
