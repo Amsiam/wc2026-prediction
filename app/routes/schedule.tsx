@@ -8,6 +8,7 @@ import { formatMatchScore } from '../lib/matchScore'
 import { useOfficialMatchResult } from '../lib/runtimeResults'
 import { useResultsSync } from '../hooks/useResultsSync'
 import { resolveScheduleTeam, type ResolvedTeam } from '../lib/scheduleTeams'
+import { dateSortKey, orderScheduleDateGroups, sortMatchesByKickoff, type DateGroup } from '../lib/scheduleOrder'
 
 function TeamLabel({ team }: { team: ResolvedTeam }) {
   if (!team.known) return <span className="text-gray-500 italic">{team.name}</span>
@@ -112,15 +113,22 @@ function getDateKey(utcDate: string, tz: string): string {
   })
 }
 
-function groupByDate(matches: ScheduleMatch[], tz: string): Map<string, ScheduleMatch[]> {
-  const map = new Map<string, ScheduleMatch[]>()
+function groupByDate(matches: ScheduleMatch[], tz: string): DateGroup<ScheduleMatch>[] {
+  const map = new Map<string, DateGroup<ScheduleMatch>>()
   for (const match of matches) {
-    const date = getDateKey(match.utcDate, tz)
-    const existing = map.get(date) ?? []
-    existing.push(match)
-    map.set(date, existing)
+    const sortKey = dateSortKey(match.utcDate, tz)
+    const label = getDateKey(match.utcDate, tz)
+    const existing = map.get(sortKey)
+    if (existing) {
+      existing.items.push(match)
+    } else {
+      map.set(sortKey, { label, sortKey, items: [match] })
+    }
   }
-  return map
+  for (const group of map.values()) {
+    group.items = sortMatchesByKickoff(group.items)
+  }
+  return orderScheduleDateGroups([...map.values()], tz)
 }
 
 const ROUND_COLORS: Record<string, string> = {
@@ -204,7 +212,10 @@ function SchedulePage() {
     })
   }, [teamSearch, groups, matches, overrides])
 
-  const grouped = groupByDate(filteredSchedule, tz)
+  const grouped = useMemo(
+    () => groupByDate(filteredSchedule, tz),
+    [filteredSchedule, tz],
+  )
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -223,11 +234,11 @@ function SchedulePage() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-6">
-        {[...grouped.entries()].map(([date, dayMatches]) => (
-          <section key={date} className="mb-8">
-            <h2 className="text-base font-semibold text-gray-300 mb-3 border-b border-gray-800 pb-1">{date}</h2>
+        {grouped.map(({ label, sortKey, items }) => (
+          <section key={sortKey} className="mb-8">
+            <h2 className="text-base font-semibold text-gray-300 mb-3 border-b border-gray-800 pb-1">{label}</h2>
             <div className="space-y-2">
-              {dayMatches.map(match => {
+              {items.map(match => {
                 const home = resolveScheduleTeam(match.homeTeam, groups, matches, overrides, match.matchNumber)
                 const away = resolveScheduleTeam(match.awayTeam, groups, matches, overrides, match.matchNumber)
                 return (
