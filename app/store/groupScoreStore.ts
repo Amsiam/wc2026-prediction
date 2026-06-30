@@ -6,6 +6,7 @@ import type { MatchDiscipline } from '../lib/fairPlay'
 export interface MatchScore {
   home: number | null
   away: number | null
+  pens?: { home: number; away: number }
 }
 
 /** Override for a placeholder team: maps teamId → real { name, flagCode } */
@@ -29,7 +30,7 @@ interface GroupScoreActions {
   setOverride: (teamId: string, override: TeamOverride | null) => void
   setActiveGroupModal: (group: string | null) => void
   importLiveResults: (data: {
-    scores?: Record<number, { home: number; away: number }>
+    scores?: Record<number, import('../lib/matchScore').MatchResult>
     discipline?: Record<number, MatchDiscipline>
     teamConduct?: Record<string, number>
   }) => void
@@ -64,7 +65,11 @@ function mergeOfficial(
 
   for (const [n, s] of Object.entries(LIVE_RESULTS.scores)) {
     const num = Number(n)
-    mergedScores[num] = { home: s.home, away: s.away }
+    mergedScores[num] = {
+      home: s.home,
+      away: s.away,
+      ...(s.pens ? { pens: s.pens } : {}),
+    }
   }
   for (const [n, d] of Object.entries(LIVE_RESULTS.discipline)) {
     mergedDiscipline[Number(n)] = d
@@ -132,7 +137,13 @@ export const groupScoreStore = createStore<GroupScoreState & GroupScoreActions>(
         if (data.scores) {
           for (const [n, score] of Object.entries(data.scores)) {
             const num = Number(n)
-            if (!isScoreLocked(num)) scores[num] = { home: score.home, away: score.away }
+            if (!isScoreLocked(num)) {
+              scores[num] = {
+                home: score.home,
+                away: score.away,
+                ...(score.pens ? { pens: score.pens } : {}),
+              }
+            }
           }
         }
         if (data.discipline) {

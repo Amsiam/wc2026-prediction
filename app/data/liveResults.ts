@@ -308,7 +308,7 @@ export const LIVE_RESULTS = {
     "home": 2,
     "away": 1
   }
-} as Record<number, { home: number; away: number }>,
+} as Record<number, import('../lib/matchScore').MatchResult>,
   discipline: {
   "1": {
     "home": {
@@ -1117,6 +1117,6 @@ export const LIVE_RESULTS = {
   "AUT": -4,
   "JOR": -4
 } as Record<string, number>,
-  syncedAt: "2026-06-30T04:16:36.735Z",
+  syncedAt: "2026-06-30T06:12:56.613Z",
   source: "openfootball/worldcup.json + wikipedia",
 }

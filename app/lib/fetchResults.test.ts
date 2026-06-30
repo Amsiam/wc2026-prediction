@@ -74,9 +74,22 @@ describe('openfootball knockout parsing', () => {
         num: 73,
         team1: 'South Africa',
         team2: 'Canada',
-        score: { ft: [0, 0], pens: [4, 5] },
+        score: { ft: [0, 0], p: [4, 5] },
       },
     ])
     expect(knockout).toEqual({ r32_m1: 'CAN' })
+  })
+
+  it('stores pen tallies from openfootball `p` field', async () => {
+    const { parseOpenFootballScoresForTest } = await import('./fetchResults')
+    const scores = parseOpenFootballScoresForTest([
+      {
+        num: 73,
+        team1: 'South Africa',
+        team2: 'Canada',
+        score: { p: [2, 3], et: [1, 1], ft: [1, 1], ht: [0, 0] },
+      },
+    ])
+    expect(scores[73]).toEqual({ home: 1, away: 1, pens: { home: 3, away: 2 } })
   })
 })

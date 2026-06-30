@@ -6,9 +6,10 @@ import { EMPTY_MATCH_DISCIPLINE } from './fairPlay'
 import { MATCH_NUMBER_BY_BRACKET } from './knockoutParticipants'
 import { sourceNameToCanonical } from './openFootballNames'
 import { resolveTeamId } from './standings'
+import type { MatchResult } from './matchScore'
 
 export interface FetchedResults {
-  scores: Record<number, { home: number; away: number }>
+  scores: Record<number, MatchResult>
   discipline: Record<number, MatchDiscipline>
   knockout: Partial<Record<MatchId, string>>
   /** Team-level fair-play conduct from Wikipedia standings (higher = better). */
@@ -26,13 +27,22 @@ const SCHEDULE_TO_BRACKET: Record<number, MatchId> = Object.fromEntries(
   Object.entries(MATCH_NUMBER_BY_BRACKET).map(([id, num]) => [num, id as MatchId]),
 ) as Record<number, MatchId>
 
+interface OpenFootballScore {
+  ft?: [number, number]
+  ht?: [number, number]
+  et?: [number, number]
+  /** Penalty shootout tallies (openfootball field name). */
+  p?: [number, number]
+  pens?: [number, number]
+}
+
 interface OpenFootballMatch {
   round?: string
   num?: number
   date?: string
   team1?: string
   team2?: string
-  score?: { ft?: [number, number]; pens?: [number, number] }
+  score?: OpenFootballScore
   group?: string
 }
 
@@ -70,14 +80,53 @@ function teamIdFromName(name: string): string | undefined {
   return resolveTeamId(scheduleName, {})
 }
 
+function penaltyTallies(score?: OpenFootballScore): [number, number] | undefined {
+  const raw = score?.p ?? score?.pens
+  if (!raw || raw.length < 2) return undefined
+  return raw
+}
+
+function matchResultFromOpenFootball(
+  m: OpenFootballMatch,
+  sched: (typeof SCHEDULE)[number],
+): MatchResult | undefined {
+  if (!m.score?.ft) return undefined
+  const [g1, g2] = m.score.ft
+  const homeIsTeam1 = sourceNameToCanonical(sched.homeTeam) === sourceNameToCanonical(m.team1!)
+  const entry: MatchResult = {
+    home: homeIsTeam1 ? g1 : g2,
+    away: homeIsTeam1 ? g2 : g1,
+  }
+  if (g1 === g2) {
+    const pens = penaltyTallies(m.score)
+    if (pens) {
+      const [p1, p2] = pens
+      entry.pens = {
+        home: homeIsTeam1 ? p1 : p2,
+        away: homeIsTeam1 ? p2 : p1,
+      }
+    }
+  }
+  return entry
+}
+
 /** Knockout schedule rows use placeholders (2A, W73); winners come from source team names. */
 function winnerFromOpenFootballMatch(m: OpenFootballMatch): string | undefined {
   if (!m.team1 || !m.team2 || !m.score?.ft) return undefined
   const [g1, g2] = m.score.ft
   if (g1 > g2) return teamIdFromName(m.team1)
   if (g2 > g1) return teamIdFromName(m.team2)
-  const [p1, p2] = m.score.pens ?? []
-  if (p1 == null || p2 == null) return undefined
+
+  const et = m.score.et
+  if (et) {
+    const [e1, e2] = et
+    if (e1 > e2) return teamIdFromName(m.team1)
+    if (e2 > e1) return teamIdFromName(m.team2)
+  }
+
+  const pens = penaltyTallies(m.score)
+  if (!pens) return undefined
+  const [p1, p2] = pens
   if (p1 > p2) return teamIdFromName(m.team1)
   if (p2 > p1) return teamIdFromName(m.team2)
   return undefined
@@ -96,15 +145,12 @@ async function fetchOpenFootball(): Promise<Pick<FetchedResults, 'scores' | 'dis
 
   for (const m of data.matches) {
     if (!m.team1 || !m.team2 || !m.score?.ft) continue
-    const [g1, g2] = m.score.ft
     const sched = findScheduleMatch(m.team1, m.team2, m.group, m.num)
     if (!sched) continue
 
-    const homeIsTeam1 = sourceNameToCanonical(sched.homeTeam) === sourceNameToCanonical(m.team1)
-    const home = homeIsTeam1 ? g1 : g2
-    const away = homeIsTeam1 ? g2 : g1
-
-    scores[sched.matchNumber] = { home, away }
+    const entry = matchResultFromOpenFootball(m, sched)
+    if (!entry) continue
+    scores[sched.matchNumber] = entry
     discipline[sched.matchNumber] = EMPTY_MATCH_DISCIPLINE
 
     const bracketId = SCHEDULE_TO_BRACKET[sched.matchNumber]
@@ -263,6 +309,22 @@ export function parseDisciplineSectionForTest(html: string): Record<string, numb
 }
 
 /** @internal exported for tests */
+export function parseOpenFootballScoresForTest(
+  matches: OpenFootballMatch[],
+): FetchedResults['scores'] {
+  const scores: FetchedResults['scores'] = {}
+  for (const m of matches) {
+    if (!m.team1 || !m.team2 || !m.score?.ft) continue
+    const sched = findScheduleMatch(m.team1, m.team2, m.group, m.num)
+    if (!sched) continue
+    const entry = matchResultFromOpenFootball(m, sched)
+    if (!entry) continue
+    scores[sched.matchNumber] = entry
+  }
+  return scores
+}
+
+/** @internal exported for tests */
 export function parseOpenFootballKnockoutForTest(
   matches: OpenFootballMatch[],
 ): Partial<Record<MatchId, string>> {
@@ -305,7 +367,7 @@ import type { MatchId } from './teams'
 import type { MatchDiscipline } from '../lib/fairPlay'
 
 export const LIVE_RESULTS = {
-  scores: ${JSON.stringify(data.scores, null, 2)} as Record<number, { home: number; away: number }>,
+  scores: ${JSON.stringify(data.scores, null, 2)} as Record<number, import('../lib/matchScore').MatchResult>,
   discipline: ${JSON.stringify(data.discipline, null, 2)} as Record<number, MatchDiscipline>,
   knockout: ${JSON.stringify(data.knockout, null, 2)} as Partial<Record<MatchId, string>>,
   teamConduct: ${JSON.stringify(data.teamConduct, null, 2)} as Record<string, number>,

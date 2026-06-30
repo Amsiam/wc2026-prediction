@@ -14,7 +14,7 @@ A web app where users predict the 2026 FIFA World Cup — picking group stage qu
 
 ## Tournament Format
 
-- 48 teams across 16 groups of 3 (Groups A–P)
+- 48 teams across 12 groups of 4 (Groups A–L)
 - Top 2 from each group + 8 best 3rd-place teams = 32 teams enter the knockout stage
 - Knockout: Round of 32 → Round of 16 → Quarterfinals → Semifinals → Final
 - 3rd place play-off between the two SF losers
@@ -28,29 +28,36 @@ A web app where users predict the 2026 FIFA World Cup — picking group stage qu
 ```
 /                  → redirects to /predictor
 /predictor         → main app shell (tabbed UI)
-  ?picks=<base64>  → hydrates picks from shareable URL
+  ?p=<bitfield>    → hydrates picks from shareable URL (optional)
+/schedule          → full match schedule with resolved teams and live scores
+/api/wc-results    → fetches latest results from openfootball + Wikipedia
 ```
 
 ### State Management
 
-A single `BracketStore` (Zustand or TanStack Store) holds all user picks.
+A single `BracketStore` (Zustand) holds all user picks. `groupScoreStore` holds group-stage scores.
 
-On every state change:
-1. Serialises picks to base64 JSON
-2. Writes to `localStorage` (key: `wc2026_picks`)
-3. Updates `?picks=` URL query param (replaces history entry)
+On every bracket change:
+1. Encodes picks to a compact bitfield
+2. Updates `?p=` URL query param (replaces history entry)
 
-On app load, hydration order:
-1. URL `?picks=` param (shared link takes priority)
-2. `localStorage` fallback
-3. Empty state (fresh start)
+On app load:
+1. URL `?p=` param hydrates shared predictions (if present)
+2. Otherwise starts from **official synced results** (no `localStorage` for bracket picks)
+3. `applyOfficialLocks()` merges confirmed group qualifiers and knockout winners from `liveResults.ts`
+
+### Live Results Sync
+
+- `scripts/sync-wc-results.ts` fetches scores from [openfootball/worldcup.json](https://github.com/openfootball/worldcup.json) and fair-play from Wikipedia
+- Writes `app/data/liveResults.ts` (scores, knockout winners, team conduct)
+- `app/data/confirmed.ts` derives locked group qualifiers and knockout winners from live results at build time
+- GitHub Actions runs sync every 4 hours; client can also sync via **Sync** button (`/api/wc-results`)
+- Finished knockout matches are **locked** in the bracket UI (cannot change official winners)
 
 ### Static Data
 
-`src/data/teams.ts` — hardcoded 2026 group draw:
-- 16 groups, 3 teams each
-- Each team: `{ id, name, code, flag }` (flag = emoji or SVG path)
-- No API calls; data is static at build time
+`app/data/teams.ts` — 2026 group draw (48 teams, groups A–L), R32 fixtures, bracket tree  
+`app/data/schedule.ts` — all 104 matches with FIFA placeholder labels (`2A`, `1F`, `W73`, etc.)
 
 ---
 
@@ -69,7 +76,7 @@ On app load, hydration order:
 
 ### Layout
 
-- Responsive grid of 16 group cards
+- Responsive grid of 12 group cards
   - Desktop: 4 columns
   - Tablet: 2 columns
   - Mobile: 1 column
@@ -136,7 +143,9 @@ Round of 32 (16 matches)
 |---|---|
 | Unpicked | Both teams shown, no highlight |
 | Picked | Winner highlighted, loser dimmed |
-| Locked (TBD) | Slot shows "TBD" |
+| Locked (official result) | Lock icon; winner cannot be changed |
+| Locked (feeder) | Lock icon on teams from finished prior rounds |
+| TBD | Slot shows placeholder label |
 
 ### Interaction — Core Principle (Pathway / Top-Down Selection)
 
@@ -208,13 +217,25 @@ A **"Generate & Share"** button in the app header/footer, enabled only when:
 
 ---
 
+## Schedule Page (`/schedule`)
+
+- Lists all 104 matches grouped by date (timezone-selectable)
+- Resolves FIFA placeholder labels to real teams:
+  - `2A` / `1F` → group runner-up / winner from bracket state
+  - `W73` → winner of match 73 (from bracket + confirmed results)
+  - `3ABCDF` → assigned 3rd-place qualifier when known
+- Shows **live scores** from `liveResults.ts` when available (e.g. `0–1` for finished knockouts)
+- Search by team name
+
+---
+
 ## Persistence & Sharing
 
 | Mechanism | Behaviour |
 |---|---|
-| `localStorage` | Picks auto-saved on every change; restored on next visit |
-| `?p=` URL param | Compact bitfield string; shared links hydrate on load |
-| Priority | URL param > localStorage > empty state |
+| `?p=` URL param | Compact bitfield; shared links hydrate on load |
+| Fresh visit (no `?p=`) | Official synced results pre-filled; no `localStorage` for bracket |
+| `localStorage` | Group score overrides only (`wc2026_scores`); timezone on schedule page |
 
 ### URL Encoding — Compact Bitfield
 
@@ -267,7 +288,6 @@ interface BracketState {
 ## Out of Scope (v1)
 
 - User accounts / cloud persistence
-- Score/points predictions
-- Live tournament data sync
+- Score/points predictions (match scores are synced from official sources, not user-entered for knockouts)
 - Mobile app
 - Social sharing (beyond copy link + image download)

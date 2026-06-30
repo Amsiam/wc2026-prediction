@@ -1,5 +1,6 @@
 import { BRACKET_TREE, R32_FIXTURES } from '../data/teams'
 import type { GroupKey, MatchId } from '../data/teams'
+import type { MatchResult } from './matchScore'
 
 export const MATCH_NUMBER_BY_BRACKET: Record<MatchId, number> = {
   r32_m1: 73, r32_m2: 74, r32_m3: 75, r32_m4: 76, r32_m5: 77, r32_m6: 78,
@@ -55,12 +56,12 @@ export function resolveMatchParticipants(
   }
 }
 
-/** Flip knockout scores when placeholder schedule rows mis-oriented openfootball ft. */
+/** Flip knockout scores when placeholder schedule rows mis-oriented openfootball ft/pens. */
 export function alignKnockoutScoresToSchedule(
-  scores: Record<number, { home: number; away: number }>,
+  scores: Record<number, MatchResult>,
   groups: GroupQualifiers,
   knockout: Partial<Record<MatchId, string>>,
-): Record<number, { home: number; away: number }> {
+): Record<number, MatchResult> {
   const aligned = { ...scores }
 
   for (const [matchId, winnerId] of Object.entries(knockout) as [MatchId, string][]) {
@@ -76,9 +77,23 @@ export function alignKnockoutScoresToSchedule(
     const awayWins = winnerId === awayId
     const scoreSaysHomeWins = s.home > s.away
     const scoreSaysAwayWins = s.away > s.home
+    const pensSaysHomeWins = s.pens != null && s.pens.home > s.pens.away
+    const pensSaysAwayWins = s.pens != null && s.pens.away > s.pens.home
 
-    if ((homeWins && scoreSaysAwayWins) || (awayWins && scoreSaysHomeWins)) {
-      aligned[num] = { home: s.away, away: s.home }
+    const shouldFlip =
+      (homeWins && scoreSaysAwayWins) ||
+      (awayWins && scoreSaysHomeWins) ||
+      (s.home === s.away && s.pens != null && (
+        (homeWins && pensSaysAwayWins) ||
+        (awayWins && pensSaysHomeWins)
+      ))
+
+    if (shouldFlip) {
+      aligned[num] = {
+        home: s.away,
+        away: s.home,
+        ...(s.pens ? { pens: { home: s.pens.away, away: s.pens.home } } : {}),
+      }
     }
   }
 
