@@ -69,18 +69,17 @@ export function AppShell() {
           <button
             key={t}
             onClick={() => handleTabChange(t)}
-            className={`px-6 py-3 text-sm font-medium capitalize transition-colors ${
-              tab === t
+            className={`px-6 py-3 text-sm font-medium capitalize transition-colors ${tab === t
                 ? 'border-b-2 border-green-500 text-white'
                 : 'text-gray-400 hover:text-white'
-            }`}
+              }`}
           >
             {t === 'groups' ? 'Group Stage' : 'Knockout'}
           </button>
         ))}
       </nav>
 
-      <main ref={mainRef} className="flex-1 overflow-auto p-4">
+      <main ref={mainRef} className={`flex-1 overflow-auto ${tab === 'knockout' ? 'px-1 py-4' : 'p-4'}`}>
         {tab === 'groups' ? <GroupGrid /> : <BracketView />}
       </main>
     </div>

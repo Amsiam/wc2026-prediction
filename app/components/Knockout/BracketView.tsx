@@ -32,16 +32,16 @@ function seedLabel(seed: SeedSource): string {
 const LEFT_ROUNDS: MatchId[][] = [
   // Ordered so each pair feeds the same R16 match
   // r16_m1←[r32_m2,r32_m5], r16_m2←[r32_m1,r32_m3], r16_m5←[r32_m11,r32_m12], r16_m6←[r32_m9,r32_m10]
-  ['r32_m2','r32_m5','r32_m1','r32_m3','r32_m11','r32_m12','r32_m9','r32_m10'],
-  ['r16_m1','r16_m2','r16_m5','r16_m6'],
-  ['qf_m1','qf_m2'],
+  ['r32_m2', 'r32_m5', 'r32_m1', 'r32_m3', 'r32_m11', 'r32_m12', 'r32_m9', 'r32_m10'],
+  ['r16_m1', 'r16_m2', 'r16_m5', 'r16_m6'],
+  ['qf_m1', 'qf_m2'],
   ['sf_m1'],
 ]
 const RIGHT_ROUNDS: MatchId[][] = [
   // r16_m3←[r32_m4,r32_m6], r16_m4←[r32_m7,r32_m8], r16_m7←[r32_m14,r32_m16], r16_m8←[r32_m13,r32_m15]
-  ['r32_m4','r32_m6','r32_m7','r32_m8','r32_m14','r32_m16','r32_m13','r32_m15'],
-  ['r16_m3','r16_m4','r16_m7','r16_m8'],
-  ['qf_m3','qf_m4'],
+  ['r32_m4', 'r32_m6', 'r32_m7', 'r32_m8', 'r32_m14', 'r32_m16', 'r32_m13', 'r32_m15'],
+  ['r16_m3', 'r16_m4', 'r16_m7', 'r16_m8'],
+  ['qf_m3', 'qf_m4'],
   ['sf_m2'],
 ]
 const ROUND_LABELS = ['Round of 32', 'Round of 16', 'Quarterfinals', 'Semifinals']
@@ -260,10 +260,10 @@ export function BracketView() {
   return (
     <div>
       <p className="text-xs text-center text-gray-400 mb-2">← Scroll to view full bracket →</p>
-      <div className="overflow-x-auto pb-4 -mx-4 px-4">
+      <div className="overflow-x-auto pb-4">
         <div id="bracket-capture" className="bracket-area min-w-max">
           <div className="flex items-start gap-2 px-2 pt-2" style={{ minHeight: 620 }}>
-            <GroupsColumn groups={['A','B','C','D','E','F'] as GroupKey[]} />
+            <GroupsColumn groups={['A', 'B', 'C', 'D', 'E', 'F'] as GroupKey[]} />
             {LEFT_ROUNDS.map((ids, i) => (
               <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
             ))}
@@ -297,7 +297,7 @@ export function BracketView() {
             {[...RIGHT_ROUNDS].reverse().map((ids, i) => (
               <RoundColumn key={i} matchIds={ids} label={ROUND_LABELS[3 - i]} onSlotClick={handleSlotClick} onWinnerPick={handleWinnerPick} />
             ))}
-            <GroupsColumn groups={['G','H','I','J','K','L'] as GroupKey[]} />
+            <GroupsColumn groups={['G', 'H', 'I', 'J', 'K', 'L'] as GroupKey[]} />
           </div>
 
           <div className="mt-3 flex flex-col items-center gap-1.5 pb-3">
