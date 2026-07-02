@@ -304,7 +304,7 @@ export function BracketView() {
             <span className="third-place-label">3rd Place Play-off</span>
             <ThirdPlaceSlot onWinnerPick={handleWinnerPick} />
             <span className="bracket-site-url mt-1">
-              https://{window.location.host}
+              https://{typeof window !== 'undefined' ? window.location.host : 'wc2k26predict.test71.xyz'}
             </span>
           </div>
         </div>

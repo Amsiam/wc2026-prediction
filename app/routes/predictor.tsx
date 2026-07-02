@@ -4,10 +4,11 @@ import { useHydrate, usePersist } from '../hooks/usePersistence'
 import { useResultsSync } from '../hooks/useResultsSync'
 
 function PredictorPage() {
+  const { p } = Route.useSearch()
   useHydrate()
   usePersist()
   useResultsSync()
-  return <AppShell />
+  return <AppShell initialTab={p ? 'knockout' : 'groups'} />
 }
 
 export const Route = createFileRoute('/predictor')({

@@ -14,15 +14,17 @@ import '../lib/syncBracketFromStandings'
 
 type Tab = 'groups' | 'knockout'
 
+interface AppShellProps {
+  initialTab?: Tab
+}
+
 function usePlacedCount(): number {
   const matches = useStore(bracketStore, s => s.matches)
   return ALL_MATCH_IDS.filter(id => matches[id].winner !== null).length
 }
 
-export function AppShell() {
-  const [tab, setTab] = useState<Tab>(() =>
-    new URLSearchParams(window.location.search).has('p') ? 'knockout' : 'groups'
-  )
+export function AppShell({ initialTab = 'groups' }: AppShellProps) {
+  const [tab, setTab] = useState<Tab>(initialTab)
   const mainRef = useRef<HTMLElement>(null)
   const scrollPos = useRef<Record<Tab, number>>({ groups: 0, knockout: 0 })
   const placedCount = usePlacedCount()
