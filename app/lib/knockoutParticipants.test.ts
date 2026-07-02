@@ -27,4 +27,17 @@ describe('alignKnockoutScoresToSchedule', () => {
       73: { home: 0, away: 0, pens: { home: 4, away: 5 } },
     })
   })
+
+  it('flips AET final score when winner is schedule home team', () => {
+    const groups = {
+      G: { first: 'BEL', second: 'EGY' },
+      I: { first: 'FRA', second: 'NOR', third: 'SEN', thirdSlot: 'r32_m10' },
+    }
+    const knockout = { r32_m10: 'BEL' }
+    const scores = { 82: { home: 2, away: 2, aet: { home: 2, away: 3 } } }
+
+    expect(alignKnockoutScoresToSchedule(scores, groups, knockout)).toEqual({
+      82: { home: 2, away: 2, aet: { home: 3, away: 2 } },
+    })
+  })
 })

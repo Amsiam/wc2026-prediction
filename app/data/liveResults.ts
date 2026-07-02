@@ -338,7 +338,11 @@ export const LIVE_RESULTS = {
   },
   "82": {
     "home": 2,
-    "away": 2
+    "away": 2,
+    "aet": {
+      "home": 3,
+      "away": 2
+    }
   }
 } as Record<number, import('../lib/matchScore').MatchResult>,
   discipline: {
@@ -1176,38 +1180,6 @@ export const LIVE_RESULTS = {
   "r32_m10": "BEL"
 } as Partial<Record<MatchId, string>>,
   teamConduct: {
-  "CZE": -1,
-  "KOR": -4,
-  "MEX": -6,
-  "RSA": -13,
-  "SUI": -3,
-  "CAN": -5,
-  "BIH": -10,
-  "QAT": -12,
-  "MAR": -1,
-  "BRA": -5,
-  "SCO": -5,
-  "HAI": -7,
-  "TUR": -3,
-  "AUS": -5,
-  "USA": -5,
-  "PAR": -12,
-  "GER": -1,
-  "CIV": -4,
-  "ECU": -5,
-  "CUW": -7,
-  "JPN": -1,
-  "TUN": -1,
-  "NED": -3,
-  "SWE": -5,
-  "NZL": -4,
-  "EGY": -6,
-  "IRN": -6,
-  "BEL": -7,
-  "ESP": -2,
-  "CPV": -4,
-  "SAU": -6,
-  "URU": -9,
   "FRA": -1,
   "NOR": -1,
   "SEN": -2,
@@ -1225,6 +1197,6 @@ export const LIVE_RESULTS = {
   "GHA": -3,
   "PAN": -5
 } as Record<string, number>,
-  syncedAt: "2026-07-02T04:12:07.852Z",
+  syncedAt: "2026-07-02T06:32:07.823Z",
   source: "openfootball/worldcup.json + wikipedia",
 }

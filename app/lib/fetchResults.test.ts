@@ -92,4 +92,17 @@ describe('openfootball knockout parsing', () => {
     ])
     expect(scores[73]).toEqual({ home: 1, away: 1, pens: { home: 3, away: 2 } })
   })
+
+  it('stores AET final score when extra time breaks a draw', async () => {
+    const { parseOpenFootballScoresForTest } = await import('./fetchResults')
+    const scores = parseOpenFootballScoresForTest([
+      {
+        num: 82,
+        team1: 'Belgium',
+        team2: 'Senegal',
+        score: { ft: [2, 2], et: [3, 2], ht: [1, 1] },
+      },
+    ])
+    expect(scores[82]).toEqual({ home: 2, away: 2, aet: { home: 2, away: 3 } })
+  })
 })

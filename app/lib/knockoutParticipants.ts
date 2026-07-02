@@ -79,6 +79,8 @@ export function alignKnockoutScoresToSchedule(
     const scoreSaysAwayWins = s.away > s.home
     const pensSaysHomeWins = s.pens != null && s.pens.home > s.pens.away
     const pensSaysAwayWins = s.pens != null && s.pens.away > s.pens.home
+    const aetSaysHomeWins = s.aet != null && s.aet.home > s.aet.away
+    const aetSaysAwayWins = s.aet != null && s.aet.away > s.aet.home
 
     const shouldFlip =
       (homeWins && scoreSaysAwayWins) ||
@@ -86,12 +88,17 @@ export function alignKnockoutScoresToSchedule(
       (s.home === s.away && s.pens != null && (
         (homeWins && pensSaysAwayWins) ||
         (awayWins && pensSaysHomeWins)
+      )) ||
+      (s.home === s.away && s.aet != null && (
+        (homeWins && aetSaysAwayWins) ||
+        (awayWins && aetSaysHomeWins)
       ))
 
     if (shouldFlip) {
       aligned[num] = {
         home: s.away,
         away: s.home,
+        ...(s.aet ? { aet: { home: s.aet.away, away: s.aet.home } } : {}),
         ...(s.pens ? { pens: { home: s.pens.away, away: s.pens.home } } : {}),
       }
     }

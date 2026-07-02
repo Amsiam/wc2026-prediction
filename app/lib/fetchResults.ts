@@ -105,6 +105,14 @@ function matchResultFromOpenFootball(
         home: homeIsTeam1 ? p1 : p2,
         away: homeIsTeam1 ? p2 : p1,
       }
+    } else if (m.score.et) {
+      const [e1, e2] = m.score.et
+      if (e1 !== g1 || e2 !== g2) {
+        entry.aet = {
+          home: homeIsTeam1 ? e1 : e2,
+          away: homeIsTeam1 ? e2 : e1,
+        }
+      }
     }
   }
   return entry

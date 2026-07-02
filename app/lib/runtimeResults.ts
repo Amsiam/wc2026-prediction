@@ -40,6 +40,7 @@ export function officialMatchResult(
     return {
       home: fromStore.home,
       away: fromStore.away,
+      ...(fromStore.aet ? { aet: fromStore.aet } : {}),
       ...(fromStore.pens ? { pens: fromStore.pens } : {}),
     }
   }

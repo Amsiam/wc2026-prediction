@@ -7,6 +7,7 @@ export interface MatchScore {
   home: number | null
   away: number | null
   pens?: { home: number; away: number }
+  aet?: { home: number; away: number }
 }
 
 /** Override for a placeholder team: maps teamId → real { name, flagCode } */
@@ -68,6 +69,7 @@ function mergeOfficial(
     mergedScores[num] = {
       home: s.home,
       away: s.away,
+      ...(s.aet ? { aet: s.aet } : {}),
       ...(s.pens ? { pens: s.pens } : {}),
     }
   }
@@ -141,6 +143,7 @@ export const groupScoreStore = createStore<GroupScoreState & GroupScoreActions>(
               scores[num] = {
                 home: score.home,
                 away: score.away,
+                ...(score.aet ? { aet: score.aet } : {}),
                 ...(score.pens ? { pens: score.pens } : {}),
               }
             }

@@ -7,6 +7,7 @@ import { SCHEDULE, type ScheduleMatch } from '../data/schedule'
 import { formatMatchScore } from '../lib/matchScore'
 import { useOfficialMatchResult } from '../lib/runtimeResults'
 import { useResultsSync } from '../hooks/useResultsSync'
+import { SyncResultsButton } from '../components/SyncResultsButton'
 import { resolveScheduleTeam, type ResolvedTeam } from '../lib/scheduleTeams'
 import { dateSortKey, orderScheduleDateGroups, sortMatchesByKickoff, type DateGroup } from '../lib/scheduleOrder'
 
@@ -233,11 +234,19 @@ function SchedulePage() {
             className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-sm text-white placeholder-gray-500 outline-none w-36"
           />
           <TzPicker value={tz} onChange={handleTzChange} />
+          <SyncResultsButton />
           <a href="/predictor" className="text-sm px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 whitespace-nowrap">← Predictor</a>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
+      <p className="max-w-4xl mx-auto px-4 pt-4 text-xs text-gray-500 leading-relaxed">
+        <span className="text-gray-400">Score key:</span>{' '}
+        <span className="font-mono text-gray-400">2–2</span> after 90 min ·{' '}
+        <span className="font-mono text-gray-400">[3]–[2]</span> after 120 min (extra time) ·{' '}
+        <span className="font-mono text-gray-400">(4)–(2)</span> penalty shootout tie-breaker
+      </p>
+
+      <main className="max-w-4xl mx-auto px-4 py-4">
         {grouped.map(({ label, sortKey, items }) => (
           <section key={sortKey} className="mb-8">
             <h2 className="text-base font-semibold text-gray-300 mb-3 border-b border-gray-800 pb-1">{label}</h2>
