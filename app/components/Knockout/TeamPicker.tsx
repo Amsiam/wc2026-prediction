@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { bracketStore } from '../../store/bracketStore'
 import { getEligibleTeams } from '../../lib/eligible'
 import type { MatchId, Team } from '../../data/teams'
+import { TeamFlag } from '../TeamFlag'
 
 interface Props {
   matchId: MatchId
@@ -49,7 +50,7 @@ export function TeamPicker({ matchId, teams, onSelect, onClose }: Props) {
                     className="w-full flex items-center gap-3 px-3 py-2 rounded hover:bg-gray-700 text-left transition-colors"
                     onClick={() => onSelect(team)}
                   >
-                    <span className={`fi fi-${team.flagCode} flex-shrink-0`} />
+                    <TeamFlag code={team.flagCode} className="flex-shrink-0" />
                     <span className='text-white'>{team.name}</span>
                     <span className="ml-auto text-xs text-gray-500">Group {team.group}</span>
                   </button>

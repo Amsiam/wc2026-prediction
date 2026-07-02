@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router'
 import appCss from '../styles.css?url'
+import { NotFound } from '../components/NotFound'
 
 const SITE_URL = 'https://wc2026-prediction.vercel.app'
 const OG_IMAGE = `${SITE_URL}/og-image.png`
@@ -38,6 +39,7 @@ export const Route = createRootRoute({
       { rel: 'canonical', href: SITE_URL },
     ],
   }),
+  notFoundComponent: NotFound,
   component: () => (
     <html lang="en">
       <head>

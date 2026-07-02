@@ -1,5 +1,6 @@
 import { getTeamById } from '../../data/teams'
 import { LockIcon } from '../LockIcon'
+import { TeamFlag } from '../TeamFlag'
 
 interface Props {
   teamId: string | null
@@ -37,7 +38,7 @@ export function KnockoutTeamRow({
     >
       {team ? (
         <>
-          <span className={`fi fi-${team.flagCode} match-flag`} />
+          <TeamFlag code={team.flagCode} className="match-flag" />
           <span className={`match-name ${isWinner ? 'name-win' : dimmed ? 'name-lose' : ''}`}>{team.name}</span>
           {scoreLabel ? <span className="match-score">{scoreLabel}</span> : null}
           {showLock

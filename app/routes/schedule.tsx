@@ -8,6 +8,7 @@ import { formatMatchScore } from '../lib/matchScore'
 import { useOfficialMatchResult } from '../lib/runtimeResults'
 import { useResultsSync } from '../hooks/useResultsSync'
 import { SyncResultsButton } from '../components/SyncResultsButton'
+import { TeamFlag } from '../components/TeamFlag'
 import { resolveScheduleTeam, type ResolvedTeam } from '../lib/scheduleTeams'
 import { dateSortKey, orderScheduleDateGroups, sortMatchesByKickoff, type DateGroup } from '../lib/scheduleOrder'
 
@@ -15,7 +16,7 @@ function TeamLabel({ team }: { team: ResolvedTeam }) {
   if (!team.known) return <span className="text-gray-500 italic">{team.name}</span>
   return (
     <span className="flex items-center gap-1.5">
-      {team.flagCode && <span className={`fi fi-${team.flagCode}`} style={{ fontSize: '0.9em' }} />}
+      {team.flagCode && <TeamFlag code={team.flagCode} style={{ fontSize: '0.9em' }} />}
       <span className="font-medium">{team.name}</span>
     </span>
   )

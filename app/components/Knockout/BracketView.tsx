@@ -5,6 +5,7 @@ import { MatchSlot } from './MatchSlot'
 import { R32MatchSlot } from './R32MatchSlot'
 import { TeamPicker } from './TeamPicker'
 import { ThirdPlaceSlot } from './ThirdPlaceSlot'
+import { TeamFlag } from '../TeamFlag'
 import { getTeamById, getGroup, BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
 import { isMatchLocked } from '../../data/confirmed'
 import { getSlotPool, getR32SlotPool, inferTeamR32Entry, getR32Ancestors } from '../../lib/bracket'
@@ -61,7 +62,7 @@ function GroupsColumn({ groups }: { groups: GroupKey[] }) {
             <div className="group-card-label" style={{ color }}>GROUP {g}</div>
             <div className="group-card-teams">
               {teams.map(team => (
-                <span title={team.name} key={team.id} className={`fi fi-${team.flagCode} group-card-flag`} />
+                <TeamFlag title={team.name} key={team.id} code={team.flagCode} className="group-card-flag" />
               ))}
             </div>
           </div>
@@ -265,7 +266,7 @@ export function BracketView() {
                   <div className="champion-box bg-green-400">
                     <div className="champion-label">⚽ World Champion</div>
                     <div className="champion-name">
-                      <span className={`fi fi-${champion.flagCode}`} />
+                      <TeamFlag code={champion.flagCode} />
                       {champion.name}
                     </div>
                   </div>
@@ -275,7 +276,7 @@ export function BracketView() {
                   <div className="champion-box">
                     <div className="champion-label">⚽ World Champion</div>
                     <div className="champion-name">
-                      <span className={`fi fi-${champion.flagCode}`} />
+                      <TeamFlag code={champion.flagCode} />
                       {champion.name}
                     </div>
                   </div>

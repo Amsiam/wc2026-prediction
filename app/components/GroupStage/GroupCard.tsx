@@ -4,6 +4,7 @@ import { groupScoreStore } from '../../store/groupScoreStore'
 import { getGroup, TEAMS } from '../../data/teams'
 import { computeStandings, isGroupComplete, getGroupMatches } from '../../lib/standings'
 import { GroupScoreModal } from './GroupScoreModal'
+import { TeamFlag } from '../TeamFlag'
 import type { GroupKey } from '../../data/teams'
 
 interface Props { groupKey: GroupKey }
@@ -96,7 +97,7 @@ export function GroupCard({ groupKey }: Props) {
                   className={`w-full flex items-center gap-2 px-3 py-1.5 rounded text-sm transition-colors ${pos} ${highlight}`}
                 >
                   <span className="w-4 text-xs opacity-60">{i + 1}</span>
-                  <span className={`fi fi-${ov?.flagCode ?? team?.flagCode}`} />
+                  <TeamFlag code={ov?.flagCode ?? team?.flagCode ?? ''} />
                   <span className="flex-1 text-left">{ov?.name ?? team?.name}</span>
                   <span className="text-xs opacity-75 font-bold">{row.points}pts</span>
                   <span className="text-xs opacity-50">{row.gd > 0 ? '+' : ''}{row.gd}</span>
@@ -127,7 +128,7 @@ export function GroupCard({ groupKey }: Props) {
                     'bg-gray-800 hover:bg-gray-700 text-gray-200'
                   }`}
                 >
-                  <span className={`fi fi-${ov?.flagCode ?? team.flagCode}`} />
+                  <TeamFlag code={ov?.flagCode ?? team.flagCode} />
                   <span className="flex-1 text-left">{ov?.name ?? team.name}</span>
                   {team.placeholder && !ov && <span className="text-xs opacity-40 italic">TBD</span>}
                   {isFirst  && <span className="text-xs opacity-75">1st</span>}

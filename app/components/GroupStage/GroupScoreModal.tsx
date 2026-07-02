@@ -7,6 +7,7 @@ import { isDisciplineLocked, isScoreLocked } from '../../data/confirmed'
 import type { RedCardType } from '../../lib/fairPlay'
 import { EMPTY_MATCH_DISCIPLINE } from '../../lib/fairPlay'
 import type { GroupKey } from '../../data/teams'
+import { TeamFlag } from '../TeamFlag'
 import { StandingsRankLegend } from './StandingsRankLegend'
 
 const RED_OPTIONS: { value: RedCardType; label: string }[] = [
@@ -130,7 +131,7 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
                   </div>
                 ) : (
                   <div key={team.id} className="flex items-center gap-2">
-                    <span className={`fi fi-${ov?.flagCode ?? team.flagCode}`} />
+                    <TeamFlag code={ov?.flagCode ?? team.flagCode} />
                     <span className="text-sm text-gray-300 flex-1">{ov?.name ?? team.name}</span>
                     <button
                       className="text-xs text-blue-400 hover:text-blue-300"
@@ -254,7 +255,7 @@ export function GroupScoreModal({ groupKey, onClose }: Props) {
                   <tr key={row.teamId} className={`${POSITION_COLORS[i] ?? 'text-gray-400'}`}>
                     <td className="py-0.5">{i + 1}</td>
                     <td className="py-0.5 flex items-center gap-1.5">
-                      <span className={`fi fi-${ov?.flagCode ?? team?.flagCode}`} />
+                      <TeamFlag code={ov?.flagCode ?? team?.flagCode ?? ''} />
                       {ov?.name ?? team?.name}
                     </td>
                     <td className="text-right">{row.played}</td>

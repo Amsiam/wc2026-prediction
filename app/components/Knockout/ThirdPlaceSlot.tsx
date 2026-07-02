@@ -4,6 +4,7 @@ import { getMatchLoser } from '../../lib/bracket'
 import { CONFIRMED_MATCHES } from '../../data/confirmed'
 import { getTeamById } from '../../data/teams'
 import { LockIcon } from '../LockIcon'
+import { TeamFlag } from '../TeamFlag'
 import type { MatchId } from '../../data/teams'
 
 interface Props {
@@ -38,7 +39,7 @@ function SlotRow({
     >
       {team ? (
         <>
-          <span className={`fi fi-${team.flagCode} match-flag`} />
+          <TeamFlag code={team.flagCode} className="match-flag" />
           <span className={`match-name ${isWinner ? 'name-win' : dimmed ? 'name-lose' : ''}`}>
             {team.name}
           </span>
