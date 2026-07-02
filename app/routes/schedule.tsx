@@ -99,10 +99,8 @@ function TzPicker({ value, onChange }: { value: string; onChange: (v: string) =>
   )
 }
 
-const LOCAL_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone
-
 function formatTime(utcDate: string, tz: string): string {
-  return new Date(utcDate).toLocaleString(undefined, {
+  return new Date(utcDate).toLocaleString('en-US', {
     month: 'short', day: 'numeric',
     hour: '2-digit', minute: '2-digit', timeZoneName: 'short',
     timeZone: tz,
@@ -110,7 +108,7 @@ function formatTime(utcDate: string, tz: string): string {
 }
 
 function getDateKey(utcDate: string, tz: string): string {
-  return new Date(utcDate).toLocaleDateString(undefined, {
+  return new Date(utcDate).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -198,9 +196,17 @@ function SchedulePage() {
     bracketStore.getState().applyOfficialLocks()
   }, [])
 
-  const [tz, setTz] = useState<string>(() => {
-    try { return localStorage.getItem(TZ_STORAGE_KEY) || LOCAL_TZ } catch { return LOCAL_TZ }
-  })
+  const [tz, setTz] = useState('UTC')
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(TZ_STORAGE_KEY)
+      const local = Intl.DateTimeFormat().resolvedOptions().timeZone
+      setTz(stored || local)
+    } catch {
+      setTz(Intl.DateTimeFormat().resolvedOptions().timeZone)
+    }
+  }, [])
   const [teamSearch, setTeamSearch] = useState('')
 
   function handleTzChange(value: string) {
