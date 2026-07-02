@@ -3,6 +3,7 @@ import { bracketStore } from '../../store/bracketStore'
 import { getMatchLoser } from '../../lib/bracket'
 import { CONFIRMED_MATCHES } from '../../data/confirmed'
 import { getTeamById } from '../../data/teams'
+import { LockIcon } from '../LockIcon'
 import type { MatchId } from '../../data/teams'
 
 interface Props {
@@ -42,7 +43,7 @@ function SlotRow({
             {team.name}
           </span>
           {showLock ? (
-            <span className="match-clear" style={{ opacity: 1, color: '#4a7a9b', cursor: 'default' }}>🔒</span>
+            <span className="match-lock"><LockIcon /></span>
           ) : null}
         </>
       ) : (

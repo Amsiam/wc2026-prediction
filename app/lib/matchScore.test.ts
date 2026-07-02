@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatMatchScore } from './matchScore'
+import { formatMatchScore, formatTeamMatchScore } from './matchScore'
 
 describe('formatMatchScore', () => {
   it('formats full-time only', () => {
@@ -20,6 +20,18 @@ describe('formatMatchScore', () => {
       away: 2,
       aet: { home: 3, away: 2 },
     })).toBe('2[3]–2[2]')
+  })
+
+  it('formats per-team pen tallies', () => {
+    const score = { home: 2, away: 2, pens: { home: 2, away: 4 } }
+    expect(formatTeamMatchScore(score, 'home')).toBe('2(2)')
+    expect(formatTeamMatchScore(score, 'away')).toBe('2(4)')
+  })
+
+  it('formats per-team AET scores', () => {
+    const score = { home: 2, away: 2, aet: { home: 3, away: 2 } }
+    expect(formatTeamMatchScore(score, 'home')).toBe('2[3]')
+    expect(formatTeamMatchScore(score, 'away')).toBe('2[2]')
   })
 
   it('ignores pens when there was a winner in normal time', () => {

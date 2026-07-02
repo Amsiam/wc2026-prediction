@@ -328,6 +328,16 @@ a {
 .match-name.name-win  { color: #6ee7b7; font-weight: 650; }
 .match-name.name-lose { color: #fca5a5; font-weight: 650; }
 
+.match-score {
+  font-size: 11px;
+  font-family: ui-monospace, "Cascadia Code", "SF Mono", monospace;
+  color: #86efac;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+.match-row.row-loser .match-score { color: #fca5a5; }
+.match-row.row-idle .match-score  { color: #94a3b8; }
+
 .match-seed {
   font-size: 9.5px;
   font-family: ui-monospace, "Cascadia Code", "SF Mono", monospace;
@@ -342,6 +352,14 @@ a {
   max-width: 140px;
   letter-spacing: 0.02em;
   flex: 1;
+}
+
+.match-lock {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  color: #4a7a9b;
+  cursor: default;
 }
 
 .match-clear {

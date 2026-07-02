@@ -16,3 +16,16 @@ export function formatMatchScore(score: MatchResult): string {
   }
   return `${score.home}–${score.away}`
 }
+
+export function formatTeamMatchScore(score: MatchResult, side: 'home' | 'away'): string {
+  const ft = side === 'home' ? score.home : score.away
+  if (score.pens != null && score.home === score.away) {
+    const pens = side === 'home' ? score.pens.home : score.pens.away
+    return `${ft}(${pens})`
+  }
+  if (score.aet != null && score.home === score.away) {
+    const aet = side === 'home' ? score.aet.home : score.aet.away
+    return `${ft}[${aet}]`
+  }
+  return String(ft)
+}

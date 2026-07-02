@@ -1,10 +1,13 @@
 import { useStore } from 'zustand'
 import { bracketStore } from '../../store/bracketStore'
-import { getTeamById, BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
+import { BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
 import type { MatchId, SeedSource } from '../../data/teams'
 import { CONFIRMED_MATCHES } from '../../data/confirmed'
 import { LIVE_RESULTS } from '../../data/liveResults'
-import { runtimeResultsStore } from '../../lib/runtimeResults'
+import { MATCH_NUMBER_BY_BRACKET } from '../../lib/knockoutParticipants'
+import { formatTeamMatchScore } from '../../lib/matchScore'
+import { runtimeResultsStore, useOfficialMatchResult } from '../../lib/runtimeResults'
+import { KnockoutTeamRow } from './KnockoutTeamRow'
 
 function shortSeed(s: SeedSource): string {
   if (s.source === 'winner') return `1${s.group}`
@@ -17,7 +20,6 @@ function childLabel(childId: MatchId): string {
     const f = R32_FIXTURES.find(x => x.id === childId)
     if (f) return `${shortSeed(f.home)} vs ${shortSeed(f.away)}`
   }
-  // r16/qf/sf — just show a short form
   return childId.replace('r16_m', 'R16-').replace('qf_m', 'QF-').replace('sf_m', 'SF-')
 }
 
@@ -25,41 +27,6 @@ interface Props {
   matchId: MatchId
   onSlotClick: (matchId: MatchId, side: 'home' | 'away') => void
   onWinnerPick: (matchId: MatchId, teamId: string) => void
-}
-
-function SlotRow({ teamId, label, isWinner, dimmed, canClick, showLock, pickDisabled, onClick, onClear }: {
-  teamId: string | null
-  label: string
-  isWinner: boolean
-  dimmed: boolean
-  canClick: boolean
-  showLock?: boolean
-  pickDisabled?: boolean
-  onClick: () => void
-  onClear?: () => void
-}) {
-  const team = teamId ? getTeamById(teamId) : null
-  const rowState = isWinner ? 'row-winner' : dimmed ? 'row-loser' : 'row-idle'
-  const clickable = canClick && !pickDisabled
-  return (
-    <div
-      onClick={clickable ? onClick : undefined}
-      className={`match-row ${rowState} ${clickable ? 'row-clickable' : 'row-inert'}`}
-    >
-      {team ? (
-        <>
-          <span className={`fi fi-${team.flagCode} match-flag`} />
-          <span className={`match-name ${isWinner ? 'name-win' : dimmed ? 'name-lose' : ''}`}>{team.name}</span>
-          {showLock
-            ? <span className="match-clear" style={{ opacity: 1, color: '#4a7a9b', cursor: 'default' }}>🔒</span>
-            : <button className="match-clear" onClick={e => { e.stopPropagation(); onClear?.() }} title="Remove">×</button>
-          }
-        </>
-      ) : (
-        <span className="match-seed">{label}</span>
-      )}
-    </div>
-  )
 }
 
 export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
@@ -98,12 +65,15 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
   const winner = officialWinner ?? match?.winner ?? null
   const hasWinner = winner !== null
   const bothKnown = homeId !== null && awayId !== null
+  const matchNumber = MATCH_NUMBER_BY_BRACKET[matchId]
+  const result = useOfficialMatchResult(matchNumber ?? -1)
 
   return (
     <div className={`match-card flex flex-col ${hasWinner ? 'winner-set' : ''}`}>
-      <SlotRow
+      <KnockoutTeamRow
         teamId={homeId}
         label={homeLabel}
+        scoreLabel={result ? formatTeamMatchScore(result, 'home') : undefined}
         isWinner={hasWinner && winner === homeId}
         dimmed={hasWinner && winner !== homeId}
         canClick={homeId !== null ? bothKnown : true}
@@ -117,9 +87,10 @@ export function MatchSlot({ matchId, onSlotClick, onWinnerPick }: Props) {
           : undefined}
       />
       <div className="match-divider" />
-      <SlotRow
+      <KnockoutTeamRow
         teamId={awayId}
         label={awayLabel}
+        scoreLabel={result ? formatTeamMatchScore(result, 'away') : undefined}
         isWinner={hasWinner && winner === awayId}
         dimmed={hasWinner && winner !== awayId}
         canClick={awayId !== null ? bothKnown : true}
