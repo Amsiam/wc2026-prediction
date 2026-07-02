@@ -9,6 +9,7 @@ import { TeamFlag } from '../TeamFlag'
 import { getTeamById, getGroup, BRACKET_TREE, R32_FIXTURES } from '../../data/teams'
 import { isMatchLocked } from '../../data/confirmed'
 import { getSlotPool, getR32SlotPool, inferTeamR32Entry, getR32Ancestors } from '../../lib/bracket'
+import { useEliminatedTeamIds } from '../../lib/eliminatedTeams'
 import type { MatchId, Team, GroupKey, SeedSource } from '../../data/teams'
 
 interface DisambigOption {
@@ -52,6 +53,8 @@ const GROUP_COLORS: Record<string, string> = {
 }
 
 function GroupsColumn({ groups }: { groups: GroupKey[] }) {
+  const eliminated = useEliminatedTeamIds()
+
   return (
     <div className="flex flex-col justify-around self-stretch gap-1 py-6">
       {groups.map(g => {
@@ -62,7 +65,13 @@ function GroupsColumn({ groups }: { groups: GroupKey[] }) {
             <div className="group-card-label" style={{ color }}>GROUP {g}</div>
             <div className="group-card-teams">
               {teams.map(team => (
-                <TeamFlag title={team.name} key={team.id} code={team.flagCode} className="group-card-flag" />
+                <TeamFlag
+                  title={team.name}
+                  key={team.id}
+                  code={team.flagCode}
+                  className="group-card-flag"
+                  eliminated={eliminated.has(team.id)}
+                />
               ))}
             </div>
           </div>
@@ -250,7 +259,7 @@ export function BracketView() {
 
   return (
     <div>
-      <p className="sm:hidden text-xs text-center text-gray-500 mb-2">← Scroll to see full bracket →</p>
+      <p className="text-xs text-center text-gray-400 mb-2">← Scroll to view full bracket →</p>
       <div className="overflow-x-auto pb-4 -mx-4 px-4">
         <div id="bracket-capture" className="bracket-area min-w-max">
           <div className="flex items-start gap-2 px-2 pt-2" style={{ minHeight: 620 }}>

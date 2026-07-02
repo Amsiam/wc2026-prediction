@@ -15,9 +15,11 @@ interface Props {
   className?: string
   style?: React.CSSProperties
   title?: string
+  /** Grayscale when the team is out of the competition. */
+  eliminated?: boolean
 }
 
-export function TeamFlag({ code, className, style, title }: Props) {
+export function TeamFlag({ code, className, style, title, eliminated }: Props) {
   const src = FLAG_URL_BY_CODE[code]
   if (!src) return null
 
@@ -27,7 +29,7 @@ export function TeamFlag({ code, className, style, title }: Props) {
       alt=""
       aria-hidden
       title={title}
-      className={className}
+      className={[className, eliminated ? 'team-flag-eliminated' : undefined].filter(Boolean).join(' ') || undefined}
       style={{
         width: '1.333em',
         height: '1em',

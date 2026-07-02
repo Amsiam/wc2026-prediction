@@ -462,6 +462,11 @@ a {
   line-height: 1;
 }
 
+.group-card-flag.team-flag-eliminated {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
 .third-place-label {
   font-size: 9px;
   font-weight: 700;
