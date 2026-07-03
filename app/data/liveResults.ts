@@ -1266,6 +1266,6 @@ export const LIVE_RESULTS = {
   "AUT": -4,
   "JOR": -4
 } as Record<string, number>,
-  syncedAt: "2026-07-03T10:46:30.941Z",
+  syncedAt: "2026-07-03T14:26:29.527Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
