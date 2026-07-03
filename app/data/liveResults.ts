@@ -344,6 +344,10 @@ export const LIVE_RESULTS = {
       "away": 2
     }
   },
+  "83": {
+    "home": 2,
+    "away": 1
+  },
   "84": {
     "home": 3,
     "away": 0
@@ -1170,6 +1174,16 @@ export const LIVE_RESULTS = {
       "red": "none"
     }
   },
+  "83": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
   "84": {
     "home": {
       "yellows": 0,
@@ -1192,6 +1206,7 @@ export const LIVE_RESULTS = {
   "r32_m8": "ENG",
   "r32_m9": "USA",
   "r32_m10": "BEL",
+  "r32_m11": "POR",
   "r32_m12": "ESP"
 } as Partial<Record<MatchId, string>>,
   teamConduct: {
@@ -1236,6 +1251,6 @@ export const LIVE_RESULTS = {
   "AUT": -4,
   "JOR": -4
 } as Record<string, number>,
-  syncedAt: "2026-07-02T21:18:00.274Z",
+  syncedAt: "2026-07-03T03:58:38.992Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
