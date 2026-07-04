@@ -356,6 +356,18 @@ export const LIVE_RESULTS = {
     "home": 2,
     "away": 0
   },
+  "86": {
+    "home": 1,
+    "away": 1,
+    "aet": {
+      "home": 3,
+      "away": 2
+    }
+  },
+  "87": {
+    "home": 1,
+    "away": 0
+  },
   "88": {
     "home": 1,
     "away": 1,
@@ -1216,6 +1228,26 @@ export const LIVE_RESULTS = {
       "red": "none"
     }
   },
+  "86": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
+  "87": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
+  },
   "88": {
     "home": {
       "yellows": 0,
@@ -1241,6 +1273,8 @@ export const LIVE_RESULTS = {
   "r32_m11": "POR",
   "r32_m12": "ESP",
   "r32_m13": "SUI",
+  "r32_m14": "ARG",
+  "r32_m15": "COL",
   "r32_m16": "EGY"
 } as Partial<Record<MatchId, string>>,
   teamConduct: {
@@ -1283,8 +1317,16 @@ export const LIVE_RESULTS = {
   "ALG": -1,
   "ARG": -2,
   "AUT": -4,
-  "JOR": -4
+  "JOR": -4,
+  "COL": -4,
+  "POR": -4,
+  "UZB": -4,
+  "COD": -5,
+  "ENG": -2,
+  "CRO": -2,
+  "GHA": -3,
+  "PAN": -5
 } as Record<string, number>,
-  syncedAt: "2026-07-03T21:16:42.236Z",
+  syncedAt: "2026-07-04T03:52:01.709Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
