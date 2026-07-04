@@ -1327,6 +1327,6 @@ export const LIVE_RESULTS = {
   "GHA": -3,
   "PAN": -5
 } as Record<string, number>,
-  syncedAt: "2026-07-04T03:52:01.709Z",
+  syncedAt: "2026-07-04T06:54:02.967Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
