@@ -411,6 +411,10 @@ export const LIVE_RESULTS = {
       "home": 4,
       "away": 3
     }
+  },
+  "97": {
+    "home": 2,
+    "away": 0
   }
 } as Record<number, import('../lib/matchScore').MatchResult>,
   discipline: {
@@ -1373,6 +1377,16 @@ export const LIVE_RESULTS = {
       "yellows": 0,
       "red": "none"
     }
+  },
+  "97": {
+    "home": {
+      "yellows": 0,
+      "red": "none"
+    },
+    "away": {
+      "yellows": 0,
+      "red": "none"
+    }
   }
 } as Record<number, MatchDiscipline>,
   knockout: {
@@ -1399,7 +1413,8 @@ export const LIVE_RESULTS = {
   "r16_m5": "ESP",
   "r16_m6": "BEL",
   "r16_m7": "ARG",
-  "r16_m8": "SUI"
+  "r16_m8": "SUI",
+  "qf_m1": "FRA"
 } as Partial<Record<MatchId, string>>,
   teamConduct: {
   "CZE": -1,
@@ -1441,16 +1456,8 @@ export const LIVE_RESULTS = {
   "ALG": -1,
   "ARG": -2,
   "AUT": -4,
-  "JOR": -4,
-  "COL": -4,
-  "POR": -4,
-  "UZB": -4,
-  "COD": -5,
-  "ENG": -2,
-  "CRO": -2,
-  "GHA": -3,
-  "PAN": -5
+  "JOR": -4
 } as Record<string, number>,
-  syncedAt: "2026-07-09T21:36:08.166Z",
+  syncedAt: "2026-07-10T04:01:56.528Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
