@@ -1524,16 +1524,8 @@ export const LIVE_RESULTS = {
   "ALG": -1,
   "ARG": -2,
   "AUT": -4,
-  "JOR": -4,
-  "COL": -4,
-  "POR": -4,
-  "UZB": -4,
-  "COD": -5,
-  "ENG": -2,
-  "CRO": -2,
-  "GHA": -3,
-  "PAN": -5
+  "JOR": -4
 } as Record<string, number>,
-  syncedAt: "2026-07-15T03:17:07.379Z",
+  syncedAt: "2026-07-15T06:22:55.836Z",
   source: "openfootball/worldcup.json + wikipedia",
 }
