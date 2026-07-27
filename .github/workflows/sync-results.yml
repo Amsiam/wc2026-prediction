@@ -1,9 +1,8 @@
 name: Sync WC results
 
 on:
-  schedule:
-    # Every 4 hours (UTC)
-    - cron: '0 */4 * * *'
+  # Tournament finished — no automatic schedule.
+  # Keep manual trigger available if a one-off sync is needed.
   workflow_dispatch:
 
 permissions:
